@@ -49,5 +49,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/b0bpp/pri_front:latest
-            ghcr.io/b0bpp/pri_front:${{ github.sha }}
+            ghcr.io/b0bpri/pri_front:latest
+            ghcr.io/b0bpri/pri_front:${{ github.sha }}
