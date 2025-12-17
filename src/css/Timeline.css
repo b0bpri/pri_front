@@ -100,3 +100,11 @@
     border-radius: 0 !important;
     border-bottom-color: #63cc07;
 }
+
+:deep(.status-student-reviewed) {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    border-bottom-color: #856404;
+}
