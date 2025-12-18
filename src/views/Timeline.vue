@@ -3,6 +3,10 @@ import {computed, onMounted, ref} from 'vue';
 import { Timeline } from 'vue-timeline-chart';
 import 'vue-timeline-chart/style.css';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
+import authStore from '/src/stores/authStore.js';
+
+const router = useRouter();
 
 const props = defineProps({
   thesisId: {
@@ -67,16 +71,16 @@ function onMouseleaveTimeline () {
 
 //Goes through acquired JSON and using pushItem and pushGroup, populates Vue Timeline Chart arrays. Is booted on app mount.
 function processDataEntries() {
-  if (!timelineData.value || !timelineData._rawValue) {
+  if (!timelineData.value) {
     console.error('Timeline data is not available');
     error.value = 'Timeline data is not available';
     return;
   }
 
-  const thesis_supervisor_id = timelineData._rawValue.supervisor_user_data_id;
+  const thesis_supervisor_id = timelineData.value.supervisor_user_data_id;
   //Test Entry to test supervisor status. Other timeline entries do not react to it, as they react strictly to entries in timelineData
   //pushItem(items, 999, 28, 1756737432000, 'Testname', 'Testcomment', 'Testtally', 'status-supervisor')
-  timelineData._rawValue.chapters.forEach(chapter => {
+  timelineData.value.chapters.forEach(chapter => {
     const author_id = chapter.author.user_data_id;
     const author_name = `${chapter.author.user_data_first_name} ${chapter.author.user_data_last_name}`;
     let was_reviewed = null;
@@ -127,7 +131,7 @@ function isSupervisor(supervisor_id, version_uploader_id){
 
 //FIX: This should be two separate functions, not a two-in-one
 function matchChapterAndVersion(entry_id, entry_date) {
-  for (const chapter of timelineData._rawValue.chapters) {
+  for (const chapter of timelineData.value.chapters) {
     console.log('Chapter being checked:', chapter);
     const version = chapter.versions.find(version =>
         new Date(version.upload_date_time).getTime() === entry_date &&
@@ -190,6 +194,10 @@ function displayItemInformation(event) {
   }
 }
 
+function goBack() {
+  router.push('/groups-panel');
+}
+
 
 /* discarded functions kept for possible future use
 //Discarded because I made adding items start with the most recent entry rather that the oldest. This made checking the status of future versions obsolete.
@@ -202,7 +210,7 @@ function assignStatus(supervisor_id, version_uploader_id, version_entry_id, vers
 }
 //Made for the function above
 function wasReviewed(version_entry_id, version_upload_date) {
-  const supervisor_id = timelineData._rawValue.supervisor_user_data_id;
+  const supervisor_id = timelineData.value.supervisor_user_data_id;
   const timestamp = Date.parse(version_upload_date);
   console.log('This is the date I am trying to find:', timestamp);
   matchChapterAndVersion(version_entry_id, timestamp);
@@ -225,6 +233,14 @@ onMounted(async () => {
 
 <template>
   <div class="wrapper">
+    <!-- Back button for promoters only - separate container -->
+    <div v-if="authStore.isPromoter" class="back-btn-container">
+      <button class="back-btn-external" @click="goBack">
+        <span>←</span>
+        Powrót
+      </button>
+    </div>
+    
     <div class="card timeline-card">
       <Timeline
           class="timeline"
@@ -249,13 +265,12 @@ onMounted(async () => {
         </template>
       </Timeline>
     </div>
-    
-    <!-- Info card in same wrapper but separate from timeline -->
-    <div class="info-card" v-if="matched_json_chapter && matched_json_version">
-      <div class="selected-item">
-        <p><strong>Selected Chapter:</strong> {{ matched_json_chapter.name }}</p>
-        <p><strong>Author:</strong> {{ matched_json_chapter.author.user_data_first_name }} {{ matched_json_chapter.author.user_data_last_name }}</p>
-        <p><strong>Email:</strong> {{ matched_json_chapter.author.user_data_email }}</p>
+  
+  <div class="info-card" v-if="matched_json_chapter && matched_json_version">
+    <div class="selected-item">
+      <p><strong>Selected Chapter:</strong> {{ matched_json_chapter.name }}</p>
+      <p><strong>Author:</strong> {{ matched_json_chapter.author.user_data_first_name }} {{ matched_json_chapter.author.user_data_last_name }}</p>
+      <p><strong>Email:</strong> {{ matched_json_chapter.author.user_data_email }}</p>
 
         <p><strong>Version Details:</strong></p>
         <div>
