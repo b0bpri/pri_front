@@ -173,6 +173,7 @@
 import axios from 'axios';
 import authStore from '/src/stores/authStore.js';
 import { Modal } from 'bootstrap';
+import '../css/GroupsPanel.css';
 
 export default {
   name: 'GroupsPanel',

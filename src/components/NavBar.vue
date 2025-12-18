@@ -1,71 +1,86 @@
 <template>
-  <div>
-    <nav
-      class="navbar navbar-expand-lg navbar-dark bg-primary px-3 shadow mt-1 mx-1"
-      style="border-radius: 1rem;"
-    >
-      <!-- Hamburger menu - only for promoters -->
-      <button v-if="authStore.isPromoter" class="btn btn-primary me-3" @click.stop="toggleSidebar">
-        ☰
-      </button>
-      <a class="navbar-brand fw-bold" href="#">PRI</a>
-
-      <!-- Student navigation tabs - only when thesis is accepted -->
-      <div v-if="!authStore.isPromoter && isStudentThesisAccepted" class="nav-tabs-container ms-3 d-flex gap-4">
-        <a 
-          class="nav-tab" 
-          :class="{ 'active': isCurrentRoute('ChaptersPreview') }"
-          @click="navigateToChapters"
-          href="#"
-        >
-          Przegląd wersji
-        </a>
-        <a 
-          class="nav-tab" 
-          :class="{ 'active': isCurrentRoute('Timeline') }"
-          @click="navigateToTimeline"
-          href="#"
-        >
-          Timeline
-        </a>
-      </div>
-
-      <!-- User info and logout -->
-      <div class="ms-auto d-flex align-items-center text-white">
-        <i class="bi bi-person-circle fs-4 me-2"></i>
-        <div class="d-flex flex-column me-3">
-          <span>{{ user.name }}</span>
-          <small class="text-light">{{ user.role }}</small>
-        </div>
-        <button v-if="authStore.userId" class="btn btn-outline-light btn-sm" @click="logout">
-          Wyloguj
-        </button>
-      </div>
-    </nav>
-
+  <div class="layout-container">
     <!-- Sidebar Menu - only for promoters -->
     <div
       v-if="authStore.isPromoter"
       ref="sidebar"
-      :class="['offcanvas', sidebarOpen ? 'show' : '', 'offcanvas-start']"
-      style="background-color: #f8f9fa;"
+      :class="['sidebar', sidebarOpen ? 'show' : '']"
     >
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Menu</h5>
-        <button type="button" class="btn-close text-reset" @click="toggleSidebar"></button>
+      <div class="sidebar-header">
+        <h5 class="sidebar-title">Menu</h5>
       </div>
-      <div class="offcanvas-body">
-        <ul class="list-group">
-          <li class="list-group-item border-0">
-            <router-link to="/" class="text-decoration-none" @click="toggleSidebar">Home</router-link>
+      <div class="sidebar-body">
+        <ul class="sidebar-menu">
+          <li class="sidebar-item">
+            <router-link to="/" class="sidebar-link">Home</router-link>
           </li>
-          <li class="list-group-item border-0">
-            <router-link to="/groups-panel" class="text-decoration-none" @click="toggleSidebar">Panel grup</router-link>
+          <li class="sidebar-item">
+            <router-link 
+              to="/groups-panel" 
+              class="sidebar-link" 
+              title="Główny widok. Sprawdź grupy i ich studentów oraz etapy w jakich znajdują się ich prace."
+            >Panel grup</router-link>
           </li>
-          <li class="list-group-item border-0" v-if="authStore.userId">
-            <router-link to="/chapters-preview/1" class="text-decoration-none" @click="toggleSidebar">Przegląd rozdziałów</router-link>
+          <li class="sidebar-item">
+            <router-link 
+              to="/checklist-maker" 
+              class="sidebar-link" 
+              title="Twórz własne szablony checklist, które będą używane do oceny prac studentów."
+            >Kreator checklist</router-link>
           </li>
         </ul>
+      </div>
+    </div>
+
+    <!-- Main content area -->
+    <div 
+      :class="['main-content', authStore.isPromoter && sidebarOpen ? 'sidebar-open' : '']"
+    >
+      <nav
+        class="navbar navbar-expand-lg navbar-dark bg-primary px-3 shadow"
+      >
+        <!-- Hamburger menu - only for promoters -->
+        <button v-if="authStore.isPromoter" class="btn btn-primary me-3" @click.stop="toggleSidebar">
+          ☰
+        </button>
+        <a class="navbar-brand fw-bold" href="#">PRI</a>
+
+        <!-- Student navigation tabs - only when thesis is accepted -->
+        <div v-if="!authStore.isPromoter && isStudentThesisAccepted" class="nav-tabs-container ms-3 d-flex gap-4">
+          <a 
+            class="nav-tab" 
+            :class="{ 'active': isCurrentRoute('ChaptersPreview') }"
+            @click="navigateToChapters"
+            href="#"
+          >
+            Przegląd wersji
+          </a>
+          <a 
+            class="nav-tab" 
+            :class="{ 'active': isCurrentRoute('Timeline') }"
+            @click="navigateToTimeline"
+            href="#"
+          >
+            Timeline
+          </a>
+        </div>
+
+        <!-- User info and logout -->
+        <div class="ms-auto d-flex align-items-center text-white">
+          <i class="bi bi-person-circle fs-4 me-2"></i>
+          <div class="d-flex flex-column me-3">
+            <span>{{ user.name }}</span>
+            <small class="text-light">{{ user.role }}</small>
+          </div>
+          <button v-if="authStore.userId" class="btn btn-outline-light btn-sm" @click="logout">
+            Wyloguj
+          </button>
+        </div>
+      </nav>
+      
+      <!-- Router view will be rendered here by the parent App.vue -->
+      <div class="content-wrapper">
+        <slot></slot>
       </div>
     </div>
   </div>
@@ -74,6 +89,7 @@
 <script>
 import authStore from '/src/stores/authStore.js';
 import axios from 'axios';
+import '../css/NavBar.css';
 
 export default {
   name: 'NavBar',
@@ -193,16 +209,6 @@ export default {
     toggleSidebar() {
       this.sidebarOpen = !this.sidebarOpen;
     },
-    handleClickOutside(event) {
-      if (!authStore.isPromoter) return; // Only handle for promoters
-      
-      setTimeout(() => {
-        const sidebar = this.$refs.sidebar;
-        if (this.sidebarOpen && sidebar && !sidebar.contains(event.target)) {
-          this.sidebarOpen = false;
-        }
-      }, 10);
-    },
     logout() {
       authStore.logout();
       this.$router.push('/');
@@ -210,68 +216,6 @@ export default {
         this.toggleSidebar();
       }
     }
-  },
-  mounted() {
-    // Only add click listener for promoters
-    if (authStore.isPromoter) {
-      document.addEventListener('click', this.handleClickOutside);
-    }
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this.handleClickOutside);
   }
 }
 </script>
-
-<style scoped>
-.offcanvas {
-  width: 250px;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  z-index: 1045;
-}
-.offcanvas.show {
-  transform: translateX(0);
-}
-
-.btn-link {
-  color: inherit !important;
-  text-align: left;
-  width: 100%;
-  border: none;
-  background: none;
-}
-
-.btn-link:hover {
-  text-decoration: underline !important;
-}
-
-.nav-tabs-container {
-  align-items: center;
-}
-
-.nav-tab {
-  color: rgba(255, 255, 255, 0.6);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1rem;
-  padding: 0.5rem 0;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  border-bottom: 3px solid transparent;
-}
-
-.nav-tab:hover {
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-}
-
-.nav-tab.active {
-  color: white;
-  border-bottom-color: white;
-}
-</style>

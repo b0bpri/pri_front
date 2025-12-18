@@ -151,7 +151,6 @@
 }
 
 .group-row {
-    cursor: pointer;
     transition: background-color 0.15s ease;
 }
 
@@ -185,7 +184,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.action-btn {
+.groups-container .action-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
@@ -198,12 +197,12 @@
     transition: all 0.15s ease;
 }
 
-.action-btn.primary {
+.groups-container .action-btn.primary {
     background-color: #4c6ef5;
     color: white;
 }
 
-.action-btn.primary:hover {
+.groups-container .action-btn.primary:hover {
     background-color: #4263eb;
 }
 
@@ -219,26 +218,40 @@
     content: "📋";
 }
 
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
+.groups-container .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  align-items: center;
 }
 
-.action-btn.secondary {
+.groups-container .actions-cell {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.groups-container .action-btn.secondary {
     background-color: #6c757d;
     color: white;
 }
 
-.action-btn.secondary:hover {
+.groups-container .action-btn.secondary:hover {
     background-color: #5a6268;
 }
 
-.action-btn.copy-btn {
+.groups-container .action-btn.copy-btn {
     background-color: #17a2b8;
 }
 
-.action-btn.copy-btn:hover {
+.groups-container .action-btn.copy-btn:hover {
     background-color: #138496;
+}
+
+.groups-table .actions-cell {
+    border-bottom: none;
+    padding: 0.75rem;
+    text-align: left;
+    vertical-align: middle;
 }
 
 .empty-state {
@@ -357,3 +370,50 @@
 .disabled-btn:hover {
     background-color: #a0aec0;
 }
+/* Fix button alignment and remove unwanted styling */
+.groups-container .groups-table td {
+    text-align: left !important;
+}
+
+.groups-container .groups-table .actions-cell {
+    text-align: left !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+
+.groups-container .groups-table tr .actions-cell {
+    border: none !important;
+}
+
+/* Remove borders from rows containing action buttons */
+.groups-container .groups-table tr:has(.actions-cell) td {
+    border-bottom: none !important;
+}
+
+/* Fallback for browsers that don't support :has() */
+.groups-container .groups-table tr td.actions-cell,
+.groups-container .groups-table tr td.actions-cell ~ td,
+.groups-container .groups-table tr td:has(.action-buttons) {
+    border-bottom: none !important;
+}
+
+/* More aggressive border removal for action cells */
+.groups-container .groups-table tbody tr td:last-child {
+    border-bottom: none !important;
+}
+
+/* Additional border removal for action buttons */
+.groups-container .action-buttons {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove any potential background lines */
+.groups-container .action-buttons::before,
+.groups-container .action-buttons::after {
+  display: none !important;
+}
+

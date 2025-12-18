@@ -3,6 +3,7 @@ import Home from '@/views/Home.vue'
 import GroupsPanel from '@/views/GroupsPanel.vue'
 import ChaptersPreview from '@/views/ChaptersPreview.vue'
 import Checklist from '@/views/Checklist.vue'
+import ChecklistMaker from '@/views/ChecklistMaker.vue'
 import Thesis from '@/views/Thesis.vue'
 import ThesisCopy from '@/views/ThesisCopy.vue'
 import StudentChapter from '@/components/StudentChapter.vue'
@@ -34,6 +35,12 @@ const routes = [
       chapterVersionId: route.params.chapterVersionId,
       ...route.query
     }),
+  },
+  {
+    path: '/checklist-maker',
+    name: 'ChecklistMaker',
+    component: ChecklistMaker,
+    meta: { requiresPromoter: true },
   },
   {
     path: '/thesis/:groupId', 
@@ -85,6 +92,12 @@ router.beforeEach(async (to, from, next) => {
   // Allow promoters to access all routes
   if (authStore.isPromoter) {
     next();
+    return;
+  }
+  
+  // Restrict ChecklistMaker to promoters only
+  if (to.meta?.requiresPromoter && !authStore.isPromoter) {
+    next({ name: 'Home' });
     return;
   }
   
