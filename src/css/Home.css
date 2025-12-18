@@ -1,8 +1,10 @@
 .wrapper {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
     padding: 2rem;
     background-color: #f8f9fa;
+    min-height: 100vh;
 }
 
 .card {
