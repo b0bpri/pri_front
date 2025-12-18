@@ -48,6 +48,7 @@ const selectedItem = ref(null);
 //Variable tracking which JSON entry matches to the clicked timeline event
 const matched_json_chapter = ref(null);
 const matched_json_version = ref(null);
+const infoCardRef = ref(null);
 
 const markers = computed(() => {
   return [mouseHoverPosition.value ? {
@@ -224,13 +225,13 @@ onMounted(async () => {
 
 <template>
   <div class="wrapper">
-    <div class="card" style="padding: 0; max-width: 1400px">
+    <div class="card timeline-card">
       <Timeline
           class="timeline"
           :groups="groups"
           :items="items"
           :viewportMin="new Date(`${new Date().getFullYear()}-01-01`).getTime()"
-          :viewportMax="new Date(`${new Date().getFullYear()}-12-01`).getTime()"
+          :viewportMax="new Date(`${new Date().getFullYear()}-12-31`).getTime()"
           :markers="markers"
           @mousemoveTimeline="onMousemoveTimeline"
           @mouseleaveTimeline="onMouseleaveTimeline"
@@ -248,10 +249,9 @@ onMounted(async () => {
         </template>
       </Timeline>
     </div>
-  </div>
-
-  <div class="wrapper">
-    <div class="card" v-if="matched_json_chapter && matched_json_version">
+    
+    <!-- Info card in same wrapper but separate from timeline -->
+    <div class="info-card" v-if="matched_json_chapter && matched_json_version">
       <div class="selected-item">
         <p><strong>Selected Chapter:</strong> {{ matched_json_chapter.name }}</p>
         <p><strong>Author:</strong> {{ matched_json_chapter.author.user_data_first_name }} {{ matched_json_chapter.author.user_data_last_name }}</p>
@@ -261,8 +261,8 @@ onMounted(async () => {
         <div>
           <p><strong>Uploaded on:</strong> {{ new Date(new Date(matched_json_version.upload_date_time).getTime() + 7200000).toISOString().replace('T', ' ').split('.')[0]  }}</p>
           <p><strong>Uploaded by:</strong> {{ matched_json_version.uploader.user_data_first_name }} {{ matched_json_version.uploader.user_data_last_name }}</p>
-          <p v-if="matched_json_version.uploader.user_data_id == timelineData.supervisor_user_data_id"><strong>Checklist Tally:</strong>{{ matched_json_version.checklist_tally.resolved + '/' + matched_json_version.checklist_tally.total }}</p>
-          <p v-if="matched_json_version.supervisor_comment  !== 'n/a'"><strong>Supervisor Comment:</strong>{{ matched_json_version.supervisor_comment }}</p>
+          <p v-if="matched_json_version.uploader.user_data_id == timelineData.supervisor_user_data_id"><strong>Checklist Tally:</strong> {{ matched_json_version.checklist_tally.resolved + '/' + matched_json_version.checklist_tally.total }}</p>
+          <p v-if="matched_json_version.supervisor_comment  !== 'n/a'"><strong>Supervisor Comment:</strong> {{ matched_json_version.supervisor_comment }}</p>
           <p v-if="matched_json_version.file_link"><a :href="matched_json_version.file_link" target="_blank">File Link</a></p>
         </div>
       </div>
