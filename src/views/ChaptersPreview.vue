@@ -162,7 +162,7 @@
           </div>
 
           <div class="modal-footer">
-            <p v-if="commentSuccess" class="success-message">Komentarz zapisany pomyślnie!</p>
+            <!-- <p v-if="commentSuccess" class="success-message">Komentarz zapisany pomyślnie!</p> -->
             <button v-if="isPromoter && isSupervisor" class="btn btn-primary" @click="saveComment">Zapisz komentarz</button>
             <button class="btn btn-secondary" @click="closeCommentModal">Zamknij</button>
           </div>
@@ -349,6 +349,7 @@
 import axios from 'axios';
 import authStore from '/src/stores/authStore.js';
 import { pushNotification, pushPromiseNotification } from '/src/components/NotivueNotification.vue';
+import {push} from "notivue";
 
 export default {
   name: 'ChaptersPreview',
@@ -363,12 +364,12 @@ export default {
       studentFiles: [],
       selectedFile: null,
       uploadSuccess: false,
-      errorMessage: '',
+      //errorMessage: '',
       userId: authStore.userId,
       showCommentModal: false,
       selectedFileForComment: null,
       fileComment: '',
-      commentSuccess: false,
+      //commentSuccess: false,
       fileComments: {},
       projectId: null,
       groupName: '',
@@ -443,13 +444,15 @@ export default {
     } else if (this.isPromoter) {
       console.log('Promoter detected - skipping initial file fetch. Files will load when student is selected.');
     } else {
-      this.errorMessage = 'Brak zalogowanego użytkownika. Proszę zalogować się ponownie.';
+      pushNotification("Brak zalogowanego użytkownika. Proszę zalogować się ponownie.", "error");
+      //this.errorMessage = 'Brak zalogowanego użytkownika. Proszę zalogować się ponownie.';
     }
 
     if (this.projectId) {
       this.fetchStudents();
     } else {
-      this.errorMessage = 'Brak identyfikatora projektu. Proszę przejść do widoku przez stronę grup.';
+      pushNotification("Brak identyfikatora projektu. Proszę przejść do widoku przez stronę grup.", "error");
+      //this.errorMessage = 'Brak identyfikatora projektu. Proszę przejść do widoku przez stronę grup.';
     }
   },
   methods: {
@@ -536,19 +539,21 @@ export default {
               this.isSupervisor = isActualSupervisor;
 
               if (!isActualSupervisor) {
-                this.errorMessage = 'Nie jesteś promotorem tej grupy. Masz ograniczone uprawnienia.';
+                pushNotification("Nie jesteś promotorem tej grupy. Masz ograniczone uprawnienia.", "warning");
+                /*this.errorMessage = 'Nie jesteś promotorem tej grupy. Masz ograniczone uprawnienia.';
                 setTimeout(() => {
                   this.errorMessage = '';
-                }, 5000);
+                }, 5000);*/
               }
             }
           } else {
             console.warn('Group not found with project ID:', this.projectId);
             this.isSupervisor = false;
-            this.errorMessage = 'Grupa nie została znaleziona. Dostęp został ograniczony.';
+            pushNotification("Grupa nie została znaleziona. Dostęp został ograniczony.", "warning");
+            /*this.errorMessage = 'Grupa nie została znaleziona. Dostęp został ograniczony.';
             setTimeout(() => {
               this.errorMessage = '';
-            }, 5000);
+            }, 5000);*/
           }
         } else {
           console.warn('Unexpected response format from groups/all:', response.data);
@@ -558,10 +563,11 @@ export default {
         console.error('Error verifying project supervisor:', error);
         // For safety, if we can't verify, we set supervisor status to false
         this.isSupervisor = false;
-        this.errorMessage = 'Nie można zweryfikować uprawnień. Dostęp został ograniczony.';
+        pushNotification("Nie można zweryfikować uprawnień. Dostęp został ograniczony.", "warning");
+        /*this.errorMessage = 'Nie można zweryfikować uprawnień. Dostęp został ograniczony.';
         setTimeout(() => {
           this.errorMessage = '';
-        }, 5000);
+        }, 5000);*/
       } finally {
         this.isVerifying = false;
       }
@@ -585,7 +591,8 @@ export default {
     async fetchStudents() {
       if (!this.isPromoter) return;
       if (!this.projectId) {
-        this.errorMessage = 'Brak identyfikatora projektu. Nie można pobrać studentów z grupy.';
+        pushNotification("Brak identyfikatora projektu. Nie można pobrać studentów z grupy", 'error');
+        //this.errorMessage = 'Brak identyfikatora projektu. Nie można pobrać studentów z grupy.';
         return;
       }
 
@@ -608,7 +615,8 @@ export default {
         }
       } catch (error) {
         console.error('Błąd przy pobieraniu studentów z grupy:', error);
-        this.errorMessage = 'Nie udało się pobrać listy studentów z grupy.';
+        pushNotification("Nie udało się pobrać listy studentów z grupy", 'error');
+        //this.errorMessage = 'Nie udało się pobrać listy studentów z grupy.';
         this.students = [];
       }
     },
@@ -620,7 +628,8 @@ export default {
       }
 
       if (!this.userId) {
-        this.errorMessage = 'Brak ID użytkownika. Proszę zalogować się ponownie.';
+        pushNotification("Brak ID użytkownika. Proszę zalogować się ponownie.", 'error');
+        //this.errorMessage = 'Brak ID użytkownika. Proszę zalogować się ponownie.';
         return;
       }
       try {
@@ -639,15 +648,17 @@ export default {
 
         console.log('Files fetched:', this.files);
         this.uploadSuccess = false;
-        this.errorMessage = '';
+        //this.errorMessage = '';
 
       } catch (error) {
         console.error('Błąd przy pobieraniu plików:', error);
 
         if (error.response?.status === 500) {
-          this.errorMessage = 'Błąd serwera - prawdopodobnie brak rozdziału dla tego użytkownika. Skontaktuj się z administratorem.';
+          pushNotification("Błąd serwera - prawdopodobnie brak rozdziału dla tego użytkownika. Skontaktuj się z administratorem.", 'error');
+          //this.errorMessage = 'Błąd serwera - prawdopodobnie brak rozdziału dla tego użytkownika. Skontaktuj się z administratorem.';
         } else {
-          this.errorMessage = 'Nie udało się pobrać plików.';
+          pushNotification("Nie udało się pobrać plików.", 'error');
+          //this.errorMessage = 'Nie udało się pobrać plików.';
         }
 
         this.files = [];
@@ -695,9 +706,11 @@ export default {
         console.error('Błąd przy pobieraniu plików studenta:', error);
 
         if (error.response?.status === 500) {
-          this.errorMessage = 'Błąd serwera - prawdopodobnie brak rozdziału dla tego studenta.';
+          pushNotification("Błąd serwera - prawdopodobnie brak rozdziału dla tego studenta.", 'error');
+          //this.errorMessage = 'Błąd serwera - prawdopodobnie brak rozdziału dla tego studenta.';
         } else {
-          this.errorMessage = 'Nie udało się pobrać plików studenta.';
+          pushNotification("Nie udało się pobrać plików studenta.", 'error');
+          //this.errorMessage = 'Nie udało się pobrać plików studenta.';
         }
 
         this.studentFiles = [];
@@ -843,7 +856,7 @@ export default {
     handleFileChange(event) {
       this.selectedFile = event.target.files[0];
       this.uploadSuccess = false;
-      this.errorMessage = '';
+      //this.errorMessage = '';
     },
 
     async uploadFile() {
@@ -852,13 +865,15 @@ export default {
       }
 
       if (this.isPromoter && !this.isSupervisor) {
-        this.errorMessage = 'Nie masz uprawnień do przesyłania plików tej grupie. Możesz przesyłać pliki tylko grupom, których jesteś promotorem.';
+        pushNotification("Nie masz uprawnień do przesyłania plików tej grupie. Możesz przesyłać pliki tylko grupom, których jesteś promotorem.", "warning");
+        //this.errorMessage = 'Nie masz uprawnień do przesyłania plików tej grupie. Możesz przesyłać pliki tylko grupom, których jesteś promotorem.';
         return;
       }
 
       const file = this.selectedFile;
       if (!file) {
-        this.errorMessage = 'Nie wybrano pliku.';
+        pushNotification("Nie wybrano pliku.", "warning");
+        //this.errorMessage = 'Nie wybrano pliku.';
         return;
       }
       let uploaderId, ownerId;
@@ -869,24 +884,28 @@ export default {
             Number(this.selectedStudentId) :
             Number(authStore.userId);
       } catch (error) {
-        this.errorMessage = 'Błąd konwersji ID użytkownika.';
+        pushNotification("Bład konwersji ID użytkownika.", "error");
+        //this.errorMessage = 'Błąd konwersji ID użytkownika.';
         return;
       }
 
       if (!uploaderId || uploaderId <= 0 || !Number.isInteger(uploaderId)) {
-        this.errorMessage = 'Nieprawidłowe ID użytkownika przesyłającego.';
+        pushNotification("Nieprawidłowe ID użytkownika przesyłającego.", "error");
+        //this.errorMessage = 'Nieprawidłowe ID użytkownika przesyłającego.';
         console.error('Invalid uploaderId:', authStore.userId, 'converted to:', uploaderId);
         return;
       }
 
       if (!ownerId || ownerId <= 0 || !Number.isInteger(ownerId)) {
-        this.errorMessage = 'Nieprawidłowe ID właściciela pliku.';
+        pushNotification("Nieprawidłowe ID właściciela pliku.", "error");
+        //this.errorMessage = 'Nieprawidłowe ID właściciela pliku.';
         console.error('Invalid ownerId:', this.selectedStudentId, 'converted to:', ownerId);
         return;
       }
 
       if (this.isPromoter && (!this.selectedStudentId || this.selectedStudentId === '')) {
-        this.errorMessage = 'Proszę wybrać studenta.';
+        pushNotification("Proszę wybrać studenta.", "warning");
+        //this.errorMessage = 'Proszę wybrać studenta.';
         return;
       }
 
@@ -935,7 +954,7 @@ export default {
 
         if (response.status === 200 && response.data && response.data > 0) {
           this.uploadSuccess = true;
-          this.errorMessage = '';
+          //this.errorMessage = '';
           this.selectedFile = null;
           if (this.$refs.fileInput) {
             this.$refs.fileInput.value = '';
@@ -982,8 +1001,8 @@ export default {
         } else {
           errorMessage = `Błąd: ${error.message}`;
         }
-
-        this.errorMessage = errorMessage;
+        pushNotification(errorMessage, 'error');
+        //this.errorMessage = errorMessage;
         this.uploadSuccess = false;
       }
     },
@@ -994,17 +1013,20 @@ export default {
       }
 
       if (this.isPromoter && !this.isSupervisor) {
-        this.errorMessage = 'Nie masz uprawnień do udostępniania linków tej grupie. Możesz udostępniać linki tylko grupom, których jesteś promotorem.';
+        pushNotification('Nie masz uprawnień do udostępniania linków tej grupie. Możesz udostępniać linki tylko grupom, których jesteś promotorem.', 'warning');
+        //this.errorMessage = 'Nie masz uprawnień do udostępniania linków tej grupie. Możesz udostępniać linki tylko grupom, których jesteś promotorem.';
         return;
       }
 
       if (!this.oneNoteLink) {
-        this.errorMessage = 'Proszę wprowadzić link OneNote.';
+        pushNotification('Proszę wprowadzić link OneNote.', 'warning');
+        //this.errorMessage = 'Proszę wprowadzić link OneNote.';
         return;
       }
 
       if (!this.selectedStudentId) {
-        this.errorMessage = 'Proszę wybrać studenta.';
+        pushNotification('Proszę wybrać studenta.', 'warning');
+        //this.errorMessage = 'Proszę wybrać studenta.';
         return;
       }
 
@@ -1014,17 +1036,20 @@ export default {
         uploaderId = Number(authStore.userId);
         ownerId = Number(this.selectedStudentId);
       } catch (error) {
-        this.errorMessage = 'Błąd konwersji ID użytkownika.';
+        pushNotification('Błąd konwersji ID użytkownika.', 'error');
+        //this.errorMessage = 'Błąd konwersji ID użytkownika.';
         return;
       }
 
       if (!uploaderId || uploaderId <= 0 || !Number.isInteger(uploaderId)) {
-        this.errorMessage = 'Nieprawidłowe ID promotora.';
+        pushNotification('Nieprawidłowe ID promotora.', 'error');
+        //this.errorMessage = 'Nieprawidłowe ID promotora.';
         return;
       }
 
       if (!ownerId || ownerId <= 0 || !Number.isInteger(ownerId)) {
-        this.errorMessage = 'Nieprawidłowe ID studenta.';
+        pushNotification('Nieprawidłowe ID studenta.', 'error');
+        //this.errorMessage = 'Nieprawidłowe ID studenta.';
         return;
       }
 
@@ -1052,7 +1077,8 @@ export default {
         const chapters = await this.fetchChapters();
 
         if (!chapters || chapters.length === 0) {
-          this.errorMessage = 'Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdział.';
+          pushNotification('Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdział.', 'warning');
+          //this.errorMessage = 'Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdział.';
           return;
         }
 
@@ -1063,7 +1089,8 @@ export default {
         if (!studentChapter) {
           console.warn('No chapter found for student ID:', this.selectedStudentId);
           console.log('Available chapters:', chapters);
-          this.errorMessage = 'Nie znaleziono rozdziału dla wybranego studenta. Proszę najpierw utworzyć rozdział dla tego studenta.';
+          pushNotification('Nie znaleziono rozdziału dla wybranego studenta. Proszę najpierw utworzyć rozdział dla tego studenta.', 'warning');
+          //this.errorMessage = 'Nie znaleziono rozdziału dla wybranego studenta. Proszę najpierw utworzyć rozdział dla tego studenta.';
           return;
         }
 
@@ -1071,7 +1098,8 @@ export default {
         console.log('Using chapter ID for student:', chapterId, 'Student ID:', this.selectedStudentId);
 
         if (!chapterId) {
-          this.errorMessage = 'Nie znaleziono ID rozdziału. Proszę najpierw utworzyć rozdział.';
+          pushNotification('Nie znaleziono ID rozdziału. Proszę najpierw utworzyć rozdział.', 'warning');
+          //this.errorMessage = 'Nie znaleziono ID rozdziału. Proszę najpierw utworzyć rozdział.';
           return;
         }
 
@@ -1087,7 +1115,7 @@ export default {
 
         if (response.status === 200 || response.status === 201) {
           this.uploadSuccess = true;
-          this.errorMessage = '';
+          //this.errorMessage = '';
           this.oneNoteLink = '';
 
           await this.fetchStudentFiles();
@@ -1131,8 +1159,8 @@ export default {
         } else if (error.message) {
           errorMessage = `Błąd: ${error.message}`;
         }
-
-        this.errorMessage = errorMessage;
+        pushNotification(errorMessage, 'error');
+        //this.errorMessage = errorMessage;
         this.uploadSuccess = false;
       }
     },
@@ -1178,14 +1206,16 @@ export default {
       } else if (file.id) {
         window.open(`/api/v1/download/${file.id}`, '_blank');
       } else {
-        this.errorMessage = 'Nie można otworzyć pliku - brak linku.';
+        pushNotification('Nie można otworzyć pliku - brak linku.', 'error');
+        //this.errorMessage = 'Nie można otworzyć pliku - brak linku.';
       }
     },
 
     goToFileChecklist(file) {
       if (!file.chapterVersionId) {
         console.error('No chapter version ID available for file:', file);
-        this.errorMessage = 'Nie można otworzyć checklisty - brak ID wersji rozdziału.';
+        pushNotification('Nie można otworzyć checklisty - brak ID wersji rozdziału.', 'error');
+        //this.errorMessage = 'Nie można otworzyć checklisty - brak ID wersji rozdziału.';
         return;
       }
 
@@ -1198,7 +1228,8 @@ export default {
 
     goToStudentChecklist() {
       if (!this.userId) {
-        this.errorMessage = 'Brak ID użytkownika. Proszę zalogować się ponownie.';
+        pushNotification("Brak ID użytkownika. Proszę zalogować się ponownie.", 'warning');
+        //this.errorMessage = 'Brak ID użytkownika. Proszę zalogować się ponownie.';
         return;
       }
       this.$router.push(`/checklist/${this.userId}`);
@@ -1254,7 +1285,8 @@ export default {
 
           // Only show error message for non-404 errors
           if (error.response?.status !== 404) {
-            this.errorMessage = 'Nie udało się pobrać komentarza do pliku.';
+            pushNotification('Nie udało się pobrać komentarza do pliku.', 'error');
+            //this.errorMessage = 'Nie udało się pobrać komentarza do pliku.';
           }
         }
       }
@@ -1266,18 +1298,21 @@ export default {
       }
 
       if (this.isPromoter && !this.isSupervisor) {
-        this.errorMessage = 'Nie masz uprawnień do dodawania komentarzy do plików tej grupy. Możesz komentować tylko pliki grup, których jesteś promotorem.';
+        pushNotification('Nie masz uprawnień do dodawania komentarzy do plików tej grupy. Możesz komentować tylko pliki grup, których jesteś promotorem.', 'error');
+        //this.errorMessage = 'Nie masz uprawnień do dodawania komentarzy do plików tej grupy. Możesz komentować tylko pliki grup, których jesteś promotorem.';
         return;
       }
 
       if (!this.selectedFileForComment) {
-        this.errorMessage = 'Brak pliku. Nie można zapisać komentarza.';
+        pushNotification('Brak pliku. Nie można zapisać komentarza.', 'error');
+        //this.errorMessage = 'Brak pliku. Nie można zapisać komentarza.';
         return;
       }
 
       const versionId = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
       if (!versionId) {
-        this.errorMessage = 'Brak ID wersji pliku. Nie można zapisać komentarza.';
+        pushNotification('Brak ID wersji pliku. NieCanBeConverted komentarza.', 'error');
+        //this.errorMessage = 'Brak ID wersji pliku. Nie można zapisać komentarza.';
         return;
       }
 
@@ -1329,7 +1364,8 @@ export default {
         }
 
         if (!chapterId) {
-          this.errorMessage = 'Nie można znaleźć rozdziału dla tego pliku. Nie można dodać komentarza.';
+          pushNotification('Nie można znaleźć rozdziału dla tego pliku. Nie można dodać komentarza.', 'error');
+          //this.errorMessage = 'Nie można znaleźć rozdziału dla tego pliku. Nie można dodać komentarza.';
           return;
         }
 
@@ -1344,12 +1380,13 @@ export default {
             if (updateResponse.status === 200) {
               const versionId = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
               this.fileComments[versionId] = this.fileComment;
-              this.commentSuccess = true;
+              //this.commentSuccess = true;
+              pushNotification('Komentarz został zaktualizowany', 'success');
               console.log('Comment updated successfully');
-              setTimeout(() => {
+              /*setTimeout(() => {
                 this.commentSuccess = false;
                 this.closeCommentModal();
-              }, 1500);
+              }, 1500);*/
 
               return;
             }
@@ -1385,12 +1422,13 @@ export default {
         if (response.status === 200 || response.status === 201) {
           const versionId = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
           this.fileComments[versionId] = this.fileComment;
-          this.commentSuccess = true;
+          //this.commentSuccess = true;
+          pushNotification('Komentarz został zapisany', 'success');
           console.log('Comment saved successfully');
-          setTimeout(() => {
+          /*setTimeout(() => {
             this.commentSuccess = false;
             this.closeCommentModal();
-          }, 1500);
+          }, 1500);*/
 
           const versionIdForFetch = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
           await this.fetchFileComment(versionIdForFetch);
@@ -1416,8 +1454,8 @@ export default {
             }
           }
         }
-
-        this.errorMessage = errorMsg;
+        pushNotification(errorMsg, 'error');
+        //this.errorMessage = errorMsg;
       }
     },
 
@@ -1481,7 +1519,8 @@ export default {
         }
       } catch (error) {
         console.error('Błąd przy usuwaniu komentarza:', error);
-        this.errorMessage = `Nie udało się usunąć komentarza: ${error.message}`;
+        pushNotification(`Nie udało się usunąć komentarza: ${error.message}`, 'error');
+        //this.errorMessage = `Nie udało się usunąć komentarza: ${error.message}`;
         return false;
       }
     },
@@ -1489,7 +1528,8 @@ export default {
     // Multi-author functionality methods
     async openMultiAuthorModal() {
       if (!this.selectedFile) {
-        this.errorMessage = 'Najpierw wybierz plik do przesłania.';
+        pushNotification('Najpierw wybierz plik do przesłania', 'error');
+        //this.errorMessage = 'Najpierw wybierz plik do przesłania.';
         return;
       }
 
@@ -1508,7 +1548,8 @@ export default {
       this.loadingGroupMembers = true;
       try {
         if (!this.projectId) {
-          this.errorMessage = 'Brak identyfikatora projektu. Nie można pobrać członków grupy.';
+          pushNotification('Brak identyfikatora projektu. Nie można pobrać członków grupy', 'error');
+          //this.errorMessage = 'Brak identyfikatora projektu. Nie można pobrać członków grupy.';
           return;
         }
 
@@ -1528,15 +1569,18 @@ export default {
           console.log('Group members (excluding logged in user):', this.groupMembers);
 
           if (this.groupMembers.length === 0) {
-            this.errorMessage = 'Nie znaleziono innych członków w Twojej grupie.';
+            pushNotification('Nie znaleziono innych członków w Twojej grupie.', 'warning');
+            //this.errorMessage = 'Nie znaleziono innych członków w Twojej grupie.';
           }
         } else {
           console.warn('Unexpected response format:', response.data);
-          this.errorMessage = 'Nieoczekiwany format odpowiedzi z serwera.';
+          pushNotification('Nieoczekiwany format odpowiedzi z serwera.', 'error');
+          //this.errorMessage = 'Nieoczekiwany format odpowiedzi z serwera.';
         }
       } catch (error) {
         console.error('Error fetching group members:', error);
-        this.errorMessage = 'Nie udało się pobrać listy członków grupy.';
+        pushNotification('Nie udało się pobrać listy członków grupy.', 'error');
+        //this.errorMessage = 'Nie udało się pobrać listy członków grupy.';
         this.groupMembers = [];
       } finally {
         this.loadingGroupMembers = false;
@@ -1545,13 +1589,15 @@ export default {
 
     async uploadMultiAuthorFile() {
       if (this.selectedCoAuthors.length === 0) {
-        this.errorMessage = 'Musisz wybrać co najmniej jednego współautora.';
+        pushNotification('Musisz wybrać co najmniej jednego współautora.', 'warning');
+        //this.errorMessage = 'Musisz wybrać co najmniej jednego współautora.';
         return;
       }
 
       const file = this.selectedFile;
       if (!file) {
-        this.errorMessage = 'Nie wybrano pliku.';
+        pushNotification('Nie wybrano pliku.', 'warning');
+        //this.errorMessage = 'Nie wybrano pliku.';
         return;
       }
 
@@ -1584,7 +1630,7 @@ export default {
 
         if (response.status === 200 && response.data && response.data > 0) {
           this.uploadSuccess = true;
-          this.errorMessage = '';
+          //this.errorMessage = '';
           this.selectedFile = null;
           if (this.$refs.fileInput) {
             this.$refs.fileInput.value = '';
@@ -1604,21 +1650,23 @@ export default {
 
       } catch (error) {
         console.error('Multi-author upload error:', error);
-        this.errorMessage = 'Nie udało się przesłać pliku wieloautorskiego.';
+        pushNotification('Nie udało się przesłać pliku wieloautorskiego.', 'error');
+        //this.errorMessage = 'Nie udało się przesłać pliku wieloautorskiego.';
       }
     },
 
     // Promoter multi-author methods
     async openPromoterMultiAuthorModal() {
       this.loadingGroupMembers = true;
-      this.errorMessage = '';
+      //this.errorMessage = '';
 
       try {
         await this.fetchGroupMembers();
         this.showPromoterMultiAuthorModal = true;
       } catch (error) {
         console.error('Error opening promoter multi-author modal:', error);
-        this.errorMessage = 'Nie udało się pobrać listy studentów.';
+        pushNotification('Nie udało się pobrać listy studentów.', 'error');
+        //this.errorMessage = 'Nie udało się pobrać listy studentów.';
       } finally {
         this.loadingGroupMembers = false;
       }
@@ -1631,13 +1679,15 @@ export default {
 
     async uploadPromoterMultiAuthorFile() {
       if (this.promoterSelectedStudents.length === 0) {
-        this.errorMessage = 'Musisz wybrać co najmniej jednego studenta.';
+        pushNotification('Musisz wybrać co najmniej jednego studenta.', 'warning');
+        //this.errorMessage = 'Musisz wybrać co najmniej jednego studenta.';
         return;
       }
 
       const file = this.selectedFile;
       if (!file) {
-        this.errorMessage = 'Nie wybrano pliku.';
+        pushNotification('Nie wybrano pliku.', 'warning');
+        //this.errorMessage = 'Nie wybrano pliku.';
         return;
       }
 
@@ -1669,7 +1719,7 @@ export default {
 
         if (response.status === 200 && response.data && response.data > 0) {
           this.uploadSuccess = true;
-          this.errorMessage = '';
+          //this.errorMessage = '';
           this.selectedFile = null;
           if (this.$refs.fileInput) {
             this.$refs.fileInput.value = '';
@@ -1689,20 +1739,22 @@ export default {
 
       } catch (error) {
         console.error('Promoter multi-author upload error:', error);
-        this.errorMessage = 'Nie udało się przesłać pliku wieloautorskiego.';
+        pushNotification('Nie udało się przesłać pliku wieloautorskiego.', 'error');
+        //this.errorMessage = 'Nie udało się przesłać pliku wieloautorskiego.';
       }
     },
 
     async openPromoterMultiAuthorLinkModal() {
       this.loadingGroupMembers = true;
-      this.errorMessage = '';
+      //this.errorMessage = '';
 
       try {
         await this.fetchGroupMembers();
         this.showPromoterMultiAuthorLinkModal = true;
       } catch (error) {
         console.error('Error opening promoter multi-author link modal:', error);
-        this.errorMessage = 'Nie udało się pobrać listy studentów.';
+        pushNotification('Nie udało się pobrać listy studentów.', 'error');
+        //this.errorMessage = 'Nie udało się pobrać listy studentów.';
       } finally {
         this.loadingGroupMembers = false;
       }
@@ -1718,13 +1770,15 @@ export default {
 
       if (this.promoterSelectedStudents.length === 0) {
         console.log('No students selected');
-        this.errorMessage = 'Musisz wybrać co najmniej jednego studenta.';
+        pushNotification('Musisz wybrać co najmniej jednego studenta.', 'warning');
+        //this.errorMessage = 'Musisz wybrać co najmniej jednego studenta.';
         return;
       }
 
       if (!this.oneNoteLink || this.oneNoteLink.trim() === '') {
         console.log('No OneNote link provided');
-        this.errorMessage = 'Musisz podać link do OneNote.';
+        pushNotification('Musisz podać link do OneNote.', 'warning');
+        //this.errorMessage = 'Musisz podać link do OneNote.';
         return;
       }
 
@@ -1745,7 +1799,8 @@ export default {
         const chapters = await this.fetchChapters();
 
         if (!chapters || chapters.length === 0) {
-          this.errorMessage = 'Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdziały.';
+          pushNotification('Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdziały.', 'warning');
+          //this.errorMessage = 'Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdziały.';
           return;
         }
 
@@ -1761,7 +1816,8 @@ export default {
         }
 
         if (studentChapterIds.length === 0) {
-          this.errorMessage = 'Nie znaleziono rozdziałów dla wybranych studentów. Proszę najpierw utworzyć rozdziały.';
+          pushNotification('Nie znaleziono rozdziałów dla wybranych studentów. Proszę najpierw utworzyć rozdziały.', 'warning');
+          //this.errorMessage = 'Nie znaleziono rozdziałów dla wybranych studentów. Proszę najpierw utworzyć rozdziały.';
           return;
         }
 
@@ -1806,7 +1862,7 @@ export default {
 
         if (allSuccessful) {
           this.uploadSuccess = true;
-          this.errorMessage = '';
+          //this.errorMessage = '';
           this.oneNoteLink = '';
 
           this.closePromoterMultiAuthorLinkModal();
@@ -1844,9 +1900,9 @@ export default {
         } else if (error.message) {
           errorMessage = `Błąd: ${error.message}`;
         }
-
-        this.errorMessage = errorMessage;
-        console.log('Error message set:', this.errorMessage);
+        pushNotification(errorMessage, 'error');
+        //this.errorMessage = errorMessage;
+        console.log('Error message set:', errorMessage);
       }
     },
     async fetchThesisTitle() {
