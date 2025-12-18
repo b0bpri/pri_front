@@ -152,6 +152,11 @@
           </div>
         </div>
 
+        <!-- Success message -->
+        <div v-if="successMessage" class="success-message action-success">
+          {{ successMessage }}
+        </div>
+
         <!-- Action buttons -->
         <div class="action-buttons">
           <button 

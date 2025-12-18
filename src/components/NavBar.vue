@@ -21,13 +21,6 @@
               title="Główny widok. Sprawdź grupy i ich studentów oraz etapy w jakich znajdują się ich prace."
             >Panel grup</router-link>
           </li>
-          <li class="sidebar-item" v-if="authStore.userId">
-            <router-link 
-              to="/chapters-preview/1" 
-              class="sidebar-link" 
-              title="Sprawdź przesłane przez studentów wersje."
-            >Przegląd rozdziałów</router-link>
-          </li>
           <li class="sidebar-item">
             <router-link 
               to="/checklist-maker" 
