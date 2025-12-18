@@ -57,7 +57,7 @@
   padding: 1rem 1.5rem;
   text-decoration: none;
   color: #495057;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
 }
@@ -73,7 +73,7 @@
   background-color: #e7f3ff;
   color: #007bff;
   border-left-color: #007bff;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Main Content Styles */
