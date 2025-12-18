@@ -98,8 +98,6 @@
           </div>
         </div>
 
-        <p v-if="uploadSuccess" class="success-message">Materiał przesłany pomyślnie.</p>
-        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       </div>
 
       <!-- Files table -->
