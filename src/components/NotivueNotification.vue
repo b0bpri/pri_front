@@ -11,7 +11,7 @@ import {
 //Defines global configuration of notifications
 const config = useNotivue()
 config.update({
-  position: 'top-left',
+  position: 'top-right',
   limit: 4,
   enqueue: false,
   avoidDuplicates: false,
