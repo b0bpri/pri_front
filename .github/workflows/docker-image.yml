@@ -15,7 +15,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: jarrobots/pri_frontend
+  IMAGE_NAME: ${{ github.repository_owner }}/pri_front:latest
 
 permissions:
   contents: read
@@ -39,15 +39,15 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: jarrobots
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Vue.js Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .  # adjust if needed
+          context: .
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/jarrobots/pri_frontend:latest
-            ghcr.io/jarrobots/pri_frontend:${{ github.sha }}
+            ghcr.io/b0bpri/pri_front:latest
+            ghcr.io/b0bpri/pri_front:${{ github.sha }}

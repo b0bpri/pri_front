@@ -28,46 +28,46 @@
       <div class="upload-section">
         <h3>Prześlij materiały</h3>
 
-      <!-- Information message for promoters who are not supervisors -->
-      <div v-if="isPromoter && !isSupervisor" class="warning-message">
-        <p>Nie jesteś promotorem tej grupy. Możesz przeglądać pliki, ale nie możesz przesyłać nowych plików ani komentować.</p>
-      </div>
+        <!-- Information message for promoters who are not supervisors -->
+        <div v-if="isPromoter && !isSupervisor" class="warning-message">
+          <p>Nie jesteś promotorem tej grupy. Możesz przeglądać pliki, ale nie możesz przesyłać nowych plików ani komentować.</p>
+        </div>
 
-      <!-- OneNote/File for promoter -->
-      <div v-if="isPromoter && isSupervisor" class="upload-toggle">
-        <label class="toggle-option" :class="{ 'active-file': !isLinkMode }">
-          <input type="radio" v-model="isLinkMode" :value="false">
-          Plik
-        </label>
-        <label class="toggle-option" :class="{ 'active-onenote': isLinkMode }">
-          <input type="radio" v-model="isLinkMode" :value="true">
-          Link OneNote
-        </label>
-      </div>
+        <!-- OneNote/File for promoter -->
+        <div v-if="isPromoter && isSupervisor" class="upload-toggle">
+          <label class="toggle-option" :class="{ 'active-file': !isLinkMode }">
+            <input type="radio" v-model="isLinkMode" :value="false">
+            Plik
+          </label>
+          <label class="toggle-option" :class="{ 'active-onenote': isLinkMode }">
+            <input type="radio" v-model="isLinkMode" :value="true">
+            Link OneNote
+          </label>
+        </div>
         <!-- Sending File -->
         <div v-if="(!isPromoter || isSupervisor) && !isLinkMode">
           <input type="file" class="file-input" ref="fileInput" @change="handleFileChange" />
           <div class="upload-buttons">
             <button
-              class="btn btn-primary file-btn"
-              :disabled="!selectedFile || (isPromoter && !selectedStudentId)"
-              @click="uploadFile"
+                class="btn btn-primary file-btn"
+                :disabled="!selectedFile || (isPromoter && !selectedStudentId)"
+                @click="uploadFile"
             >
               Wyślij plik
             </button>
             <button
-              v-if="!isPromoter"
-              class="btn btn-secondary multi-author-btn"
-              :disabled="!selectedFile"
-              @click="openMultiAuthorModal"
+                v-if="!isPromoter"
+                class="btn btn-secondary multi-author-btn"
+                :disabled="!selectedFile"
+                @click="openMultiAuthorModal"
             >
               Wyślij pracę wieloautorską
             </button>
             <button
-              v-if="isPromoter && isSupervisor"
-              class="btn btn-secondary multi-author-btn"
-              :disabled="!selectedFile"
-              @click="openPromoterMultiAuthorModal"
+                v-if="isPromoter && isSupervisor"
+                class="btn btn-secondary multi-author-btn"
+                :disabled="!selectedFile"
+                @click="openPromoterMultiAuthorModal"
             >
               Wyślij plik wieloautorski
             </button>
@@ -75,23 +75,23 @@
         </div>        <!-- OneNote link  -->
         <div v-if="isLinkMode && isPromoter && isSupervisor" class="link-input-container">
           <input
-            type="text"
-            class="link-input"
-            v-model="oneNoteLink"
-            placeholder="Wklej link do OneNote"
+              type="text"
+              class="link-input"
+              v-model="oneNoteLink"
+              placeholder="Wklej link do OneNote"
           />
           <div class="upload-buttons">
             <button
-              class="btn btn-primary onenote-btn"
-              :disabled="!oneNoteLink || !selectedStudentId"
-              @click="shareOneNoteLink"
+                class="btn btn-primary onenote-btn"
+                :disabled="!oneNoteLink || !selectedStudentId"
+                @click="shareOneNoteLink"
             >
               Udostępnij link
             </button>
             <button
-              class="btn btn-secondary multi-author-btn"
-              :disabled="!oneNoteLink"
-              @click="openPromoterMultiAuthorLinkModal"
+                class="btn btn-secondary multi-author-btn"
+                :disabled="!oneNoteLink"
+                @click="openPromoterMultiAuthorLinkModal"
             >
               Udostępnij link wieloautorski
             </button>
@@ -105,30 +105,30 @@
       <!-- Files table -->
       <table class="table" v-if="displayFiles.length > 0">
         <thead>
-          <tr>
-            <th>Wysłane przez</th>
-            <th>Nazwa pliku</th>
-            <th>Data przesłania</th>
-            <th>Akcje</th>
-          </tr>
+        <tr>
+          <th>Wysłane przez</th>
+          <th>Nazwa pliku</th>
+          <th>Data przesłania</th>
+          <th>Akcje</th>
+        </tr>
         </thead>
         <tbody>
-          <tr v-for="(file, index) in displayFiles" :key="index" :class="index % 2 === 0 ? 'row-light' : ''">
-            <td>{{ file.senderName || 'Nieznany' }}</td>
-            <td>{{ getDisplayName(file) }}</td>
-            <td>{{ formatDate(file.uploadedAt) }}</td>
-            <td class="actions-cell">
-              <button class="action-btn preview-btn" @click="previewFile(file)">
-                Podgląd
-              </button>
-              <button v-if="isUploadedByPromoter(file)" class="action-btn checklist-btn" @click="goToFileChecklist(file)">
-                Checklista
-              </button>
-              <button class="action-btn comment-btn" @click="openCommentModal(file)">
-                Komentarz
-              </button>
-            </td>
-          </tr>
+        <tr v-for="(file, index) in displayFiles" :key="index" :class="index % 2 === 0 ? 'row-light' : ''">
+          <td>{{ file.senderName || 'Nieznany' }}</td>
+          <td>{{ getDisplayName(file) }}</td>
+          <td>{{ formatDate(file.uploadedAt) }}</td>
+          <td class="actions-cell">
+            <button class="action-btn preview-btn" @click="previewFile(file)">
+              Podgląd
+            </button>
+            <button v-if="isUploadedByPromoter(file)" class="action-btn checklist-btn" @click="goToFileChecklist(file)">
+              Checklista
+            </button>
+            <button class="action-btn comment-btn" @click="openCommentModal(file)">
+              Komentarz
+            </button>
+          </td>
+        </tr>
         </tbody>
       </table>
 
@@ -147,10 +147,10 @@
         </div>
         <div class="modal-body">
           <textarea
-            class="comment-textarea"
-            v-model="fileComment"
-            :readonly="!isPromoter"
-            :placeholder="isPromoter ? 'Wpisz komentarz lub link do OneNote...' : 'Brak komentarza od promotora'"
+              class="comment-textarea"
+              v-model="fileComment"
+              :readonly="!isPromoter"
+              :placeholder="isPromoter ? 'Wpisz komentarz lub link do OneNote...' : 'Brak komentarza od promotora'"
           ></textarea>
 
           <div v-if="isPromoter">
@@ -194,16 +194,16 @@
 
           <div v-else class="group-members-list">
             <div
-              v-for="member in groupMembers"
-              :key="member.id"
-              class="member-item"
+                v-for="member in groupMembers"
+                :key="member.id"
+                class="member-item"
             >
               <label class="member-checkbox">
                 <input
-                  type="checkbox"
-                  :value="member.id"
-                  v-model="selectedCoAuthors"
-                  :disabled="member.id === userId"
+                    type="checkbox"
+                    :value="member.id"
+                    v-model="selectedCoAuthors"
+                    :disabled="member.id === userId"
                 />
                 <span class="member-name">
                   {{ getStudentDisplayName(member) }}
@@ -219,9 +219,9 @@
 
           <div class="modal-footer">
             <button
-              class="btn btn-primary"
-              :disabled="selectedCoAuthors.length === 0 || loadingGroupMembers"
-              @click="uploadMultiAuthorFile"
+                class="btn btn-primary"
+                :disabled="selectedCoAuthors.length === 0 || loadingGroupMembers"
+                @click="uploadMultiAuthorFile"
             >
               Wyślij plik wieloautorski
             </button>
@@ -253,15 +253,15 @@
 
           <div v-else class="group-members-list">
             <div
-              v-for="student in students"
-              :key="student.id"
-              class="member-item"
+                v-for="student in students"
+                :key="student.id"
+                class="member-item"
             >
               <label class="member-checkbox">
                 <input
-                  type="checkbox"
-                  :value="student.id"
-                  v-model="promoterSelectedStudents"
+                    type="checkbox"
+                    :value="student.id"
+                    v-model="promoterSelectedStudents"
                 />
                 <span class="member-name">
                   {{ getStudentDisplayName(student) }}
@@ -276,9 +276,9 @@
 
           <div class="modal-footer">
             <button
-              class="btn btn-primary"
-              :disabled="promoterSelectedStudents.length === 0 || loadingGroupMembers"
-              @click="uploadPromoterMultiAuthorFile"
+                class="btn btn-primary"
+                :disabled="promoterSelectedStudents.length === 0 || loadingGroupMembers"
+                @click="uploadPromoterMultiAuthorFile"
             >
               Wyślij plik wieloautorski
             </button>
@@ -310,15 +310,15 @@
 
           <div v-else class="group-members-list">
             <div
-              v-for="student in students"
-              :key="student.id"
-              class="member-item"
+                v-for="student in students"
+                :key="student.id"
+                class="member-item"
             >
               <label class="member-checkbox">
                 <input
-                  type="checkbox"
-                  :value="student.id"
-                  v-model="promoterSelectedStudents"
+                    type="checkbox"
+                    :value="student.id"
+                    v-model="promoterSelectedStudents"
                 />
                 <span class="member-name">
                   {{ getStudentDisplayName(student) }}
@@ -333,9 +333,9 @@
 
           <div class="modal-footer">
             <button
-              class="btn btn-primary"
-              :disabled="promoterSelectedStudents.length === 0 || loadingGroupMembers"
-              @click="sharePromoterMultiAuthorLink"
+                class="btn btn-primary"
+                :disabled="promoterSelectedStudents.length === 0 || loadingGroupMembers"
+                @click="sharePromoterMultiAuthorLink"
             >
               Udostępnij link wieloautorski
             </button>
@@ -350,6 +350,7 @@
 <script>
 import axios from 'axios';
 import authStore from '/src/stores/authStore.js';
+import { pushNotification, pushPromiseNotification } from '/src/components/NotivueNotification.vue';
 
 export default {
   name: 'ChaptersPreview',
@@ -474,8 +475,8 @@ export default {
           console.log('All groups data for supervisor lookup:', allGroups);
 
           const targetGroup = allGroups.find(group =>
-            group.project_id === Number(this.projectId) ||
-            group.project_id === this.projectId
+              group.project_id === Number(this.projectId) ||
+              group.project_id === this.projectId
           );
 
           if (targetGroup && targetGroup.supervisor) {
@@ -515,8 +516,8 @@ export default {
           console.log('All groups data:', allGroups);
 
           const targetGroup = allGroups.find(group =>
-            group.project_id === Number(this.projectId) ||
-            group.project_id === this.projectId
+              group.project_id === Number(this.projectId) ||
+              group.project_id === this.projectId
           );
 
           if (targetGroup) {
@@ -524,7 +525,7 @@ export default {
 
             const supervisorId = targetGroup.supervisor?.id;
             const userId = Number(authStore.userId);
-            
+
             // Store supervisor ID for later use
             this.supervisorId = supervisorId;
 
@@ -627,7 +628,7 @@ export default {
       try {
         console.log('Fetching files for user ID:', this.userId);
         const response = await axios.get(`/api/v1/view/version/byOwner/${this.userId}`);
-        
+
         // Handle the new response format
         if (response.data && response.data.versions) {
           this.files = await this.mapFiles(response.data.versions);
@@ -637,20 +638,20 @@ export default {
           console.warn('Unexpected response format:', response.data);
           this.files = [];
         }
-        
+
         console.log('Files fetched:', this.files);
         this.uploadSuccess = false;
         this.errorMessage = '';
-        
+
       } catch (error) {
         console.error('Błąd przy pobieraniu plików:', error);
-        
+
         if (error.response?.status === 500) {
           this.errorMessage = 'Błąd serwera - prawdopodobnie brak rozdziału dla tego użytkownika. Skontaktuj się z administratorem.';
         } else {
           this.errorMessage = 'Nie udało się pobrać plików.';
         }
-        
+
         this.files = [];
       }
     },
@@ -663,7 +664,7 @@ export default {
       try {
         console.log('Fetching files for student ID:', this.selectedStudentId);
         const response = await axios.get(`/api/v1/view/version/byOwner/${this.selectedStudentId}`);
-        
+
         if (response.data && response.data.versions) {
           this.studentFiles = await this.mapFiles(response.data.versions);
         } else if (response.data && Array.isArray(response.data)) {
@@ -672,7 +673,7 @@ export default {
           console.warn('Unexpected response format:', response.data);
           this.studentFiles = [];
         }
-        
+
         console.log('Student files fetched:', this.studentFiles);
 
         const chapters = await this.fetchChapters();
@@ -694,13 +695,13 @@ export default {
 
       } catch (error) {
         console.error('Błąd przy pobieraniu plików studenta:', error);
-        
+
         if (error.response?.status === 500) {
           this.errorMessage = 'Błąd serwera - prawdopodobnie brak rozdziału dla tego studenta.';
         } else {
           this.errorMessage = 'Nie udało się pobrać plików studenta.';
         }
-        
+
         this.studentFiles = [];
       }
     },
@@ -826,18 +827,18 @@ export default {
       if (!file.uploaderId || !this.supervisorId) {
         return false;
       }
-      
+
       // Convert to numbers to ensure proper comparison
       const uploaderId = Number(file.uploaderId);
       const supervisorId = Number(this.supervisorId);
-      
+
       console.log('Checking if file uploaded by promoter:', {
         fileName: file.name,
         uploaderId: uploaderId,
         supervisorId: supervisorId,
         isPromoterUpload: uploaderId === supervisorId
       });
-      
+
       return uploaderId === supervisorId;
     },
 
@@ -859,36 +860,36 @@ export default {
 
       const file = this.selectedFile;
       if (!file) {
-          this.errorMessage = 'Nie wybrano pliku.';
-          return;
+        this.errorMessage = 'Nie wybrano pliku.';
+        return;
       }
       let uploaderId, ownerId;
 
       try {
-          uploaderId = Number(authStore.userId);
-          ownerId = this.isPromoter ?
-              Number(this.selectedStudentId) :
-              Number(authStore.userId);
+        uploaderId = Number(authStore.userId);
+        ownerId = this.isPromoter ?
+            Number(this.selectedStudentId) :
+            Number(authStore.userId);
       } catch (error) {
-          this.errorMessage = 'Błąd konwersji ID użytkownika.';
-          return;
+        this.errorMessage = 'Błąd konwersji ID użytkownika.';
+        return;
       }
 
       if (!uploaderId || uploaderId <= 0 || !Number.isInteger(uploaderId)) {
-          this.errorMessage = 'Nieprawidłowe ID użytkownika przesyłającego.';
-          console.error('Invalid uploaderId:', authStore.userId, 'converted to:', uploaderId);
-          return;
+        this.errorMessage = 'Nieprawidłowe ID użytkownika przesyłającego.';
+        console.error('Invalid uploaderId:', authStore.userId, 'converted to:', uploaderId);
+        return;
       }
 
       if (!ownerId || ownerId <= 0 || !Number.isInteger(ownerId)) {
-          this.errorMessage = 'Nieprawidłowe ID właściciela pliku.';
-          console.error('Invalid ownerId:', this.selectedStudentId, 'converted to:', ownerId);
-          return;
+        this.errorMessage = 'Nieprawidłowe ID właściciela pliku.';
+        console.error('Invalid ownerId:', this.selectedStudentId, 'converted to:', ownerId);
+        return;
       }
 
       if (this.isPromoter && (!this.selectedStudentId || this.selectedStudentId === '')) {
-          this.errorMessage = 'Proszę wybrać studenta.';
-          return;
+        this.errorMessage = 'Proszę wybrać studenta.';
+        return;
       }
 
       const formData = new FormData();
@@ -904,238 +905,239 @@ export default {
       console.log('Converted ownerId:', ownerId, typeof ownerId);
       console.log('isPromoter:', this.isPromoter);
       console.log('File details:', {
-          name: file.name,
-          size: file.size,
-          type: file.type
+        name: file.name,
+        size: file.size,
+        type: file.type
       });
 
       try {
-          // Single author upload 
-          const url = `/api/v1/file?uploaderId=${uploaderId.toString()}&ownerId=${ownerId.toString()}`;
-          console.log('Request URL:', url);
-          console.log('FormData contains:', {
-            file: file.name,
-            uploaderId: uploaderId.toString(),
-            ownerId: ownerId.toString()
-          });
+        // Single author upload
+        const url = `/api/v1/file?uploaderId=${uploaderId.toString()}&ownerId=${ownerId.toString()}`;
+        console.log('Request URL:', url);
+        console.log('FormData contains:', {
+          file: file.name,
+          uploaderId: uploaderId.toString(),
+          ownerId: ownerId.toString()
+        });
 
-          console.log('AuthStore user info:', {
-            userId: authStore.userId,
-            userName: authStore.userName,
-            isPromoter: authStore.isPromoter
-          });
+        console.log('AuthStore user info:', {
+          userId: authStore.userId,
+          userName: authStore.userName,
+          isPromoter: authStore.isPromoter
+        });
 
-          const response = await axios.post(url, formData, {
-              headers: {
-                  'Content-Type': 'multipart/form-data'
-              },
-              timeout: 30000
-          });
-
-          console.log('Upload response:', response.data, response.status);
-
-          if (response.status === 200 && response.data && response.data > 0) {
-              this.uploadSuccess = true;
-              this.errorMessage = '';
-              this.selectedFile = null;
-              if (this.$refs.fileInput) {
-                  this.$refs.fileInput.value = '';
-              }
-
-              if (this.isPromoter) {
-                  await this.fetchStudentFiles();
-              } else {
-                  await this.fetchFiles();
-              }
-          } else {
-              throw new Error(`Upload failed. Server returned: ${response.data}`);
-          }
-
-      } catch (error) {
-          console.error('Upload error details:', error);
-
-          let errorMessage = 'Nie udało się przesłać pliku.';
-
-          if (error.response) {
-              const status = error.response.status;
-              const data = error.response.data;
-
-              if (status === 400) {
-                  errorMessage = 'Nieprawidłowe dane. Sprawdź czy wybrano właściwego studenta.';
-              } else if (status === 500) {
-                  errorMessage = 'Błąd serwera. Spróbuj ponownie później.';
-              } else {
-                  errorMessage = `Błąd serwera (${status}): ${data?.message || 'Nieznany błąd'}`;
-              }
-
-              console.error('Server error:', {
-                  status: status,
-                  data: data,
-                  uploaderId: uploaderId,
-                  ownerId: ownerId
-              });
-
-          } else if (error.request) {
-              errorMessage = 'Brak połączenia z serwerem. Sprawdź połączenie internetowe.';
-          } else if (error.code === 'ECONNABORTED') {
-              errorMessage = 'Przekroczono limit czasu przesyłania. Spróbuj ponownie.';
-          } else {
-              errorMessage = `Błąd: ${error.message}`;
-          }
-
-          this.errorMessage = errorMessage;
-          this.uploadSuccess = false;
-      }
-  },
-
-  async shareOneNoteLink() {
-    if (this.isPromoter) {
-      await this.verifySupervisorStatus();
-    }
-
-    if (this.isPromoter && !this.isSupervisor) {
-      this.errorMessage = 'Nie masz uprawnień do udostępniania linków tej grupie. Możesz udostępniać linki tylko grupom, których jesteś promotorem.';
-      return;
-    }
-
-    if (!this.oneNoteLink) {
-      this.errorMessage = 'Proszę wprowadzić link OneNote.';
-      return;
-    }
-
-    if (!this.selectedStudentId) {
-      this.errorMessage = 'Proszę wybrać studenta.';
-      return;
-    }
-
-    let uploaderId, ownerId;
-
-    try {
-      uploaderId = Number(authStore.userId);
-      ownerId = Number(this.selectedStudentId);
-    } catch (error) {
-      this.errorMessage = 'Błąd konwersji ID użytkownika.';
-      return;
-    }
-
-    if (!uploaderId || uploaderId <= 0 || !Number.isInteger(uploaderId)) {
-      this.errorMessage = 'Nieprawidłowe ID promotora.';
-      return;
-    }
-
-    if (!ownerId || ownerId <= 0 || !Number.isInteger(ownerId)) {
-      this.errorMessage = 'Nieprawidłowe ID studenta.';
-      return;
-    }
-
-    const linkData = {
-      owner_user_data_id: ownerId,
-      uploader_user_data_id: uploaderId,
-      link: this.oneNoteLink
-    };
-
-    let apiUrl = '';
-
-    try {
-      console.log('=== ONENOTE LINK DEBUG INFO ===');
-      console.log('Original authStore.userId:', authStore.userId, typeof authStore.userId);
-      console.log('Original selectedStudentId:', this.selectedStudentId, typeof this.selectedStudentId);
-      console.log('Converted uploaderId:', uploaderId, typeof uploaderId);
-      console.log('Converted ownerId:', ownerId, typeof ownerId);
-      console.log('isPromoter:', this.isPromoter);
-      console.log('Link details:', {
-          url: this.oneNoteLink
-      });
-
-      console.log('Preparing to send OneNote link:', linkData);
-
-      const chapters = await this.fetchChapters();
-
-      if (!chapters || chapters.length === 0) {
-        this.errorMessage = 'Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdział.';
-        return;
-      }
-
-      const studentChapter = chapters.find(chapter =>
-        chapter.owner_id === Number(this.selectedStudentId)
-      );
-
-      if (!studentChapter) {
-        console.warn('No chapter found for student ID:', this.selectedStudentId);
-        console.log('Available chapters:', chapters);
-        this.errorMessage = 'Nie znaleziono rozdziału dla wybranego studenta. Proszę najpierw utworzyć rozdział dla tego studenta.';
-        return;
-      }
-
-      const chapterId = studentChapter.id;
-      console.log('Using chapter ID for student:', chapterId, 'Student ID:', this.selectedStudentId);
-
-      if (!chapterId) {
-        this.errorMessage = 'Nie znaleziono ID rozdziału. Proszę najpierw utworzyć rozdział.';
-        return;
-      }
-
-      apiUrl = `/api/v1/chapter/addVersionWithLink?chapterIds=${chapterId}`;
-      console.log('Request URL:', apiUrl);
-
-      const response = await axios.post(apiUrl, linkData, {
+        const response = await axios.post(url, formData, {
           headers: {
-              'Content-Type': 'application/json'
+            'Content-Type': 'multipart/form-data'
           },
           timeout: 30000
-      });
+        });
 
-      if (response.status === 200 || response.status === 201) {
-        this.uploadSuccess = true;
-        this.errorMessage = '';
-        this.oneNoteLink = '';
+        console.log('Upload response:', response.data, response.status);
 
-        await this.fetchStudentFiles();
-
-        console.log('OneNote link added successfully:', response.data);
-      } else {
-        throw new Error(`Link sharing failed. Server returned: ${response.data}`);
-      }
-
-    } catch (error) {
-      console.error('Error sharing OneNote link:', error);
-
-      let errorMessage = 'Nie udało się udostępnić linku.';
-
-      if (error.response) {
-        const status = error.response.status;
-        const data = error.response.data;
-
-        if (status === 400) {
-          errorMessage = 'Nieprawidłowe dane. Sprawdź poprawność linku i wybranego studenta.';
-        } else if (status === 404) {
-          errorMessage = 'Nie znaleziono rozdziału o podanym ID. Proszę utworzyć rozdział przed dodaniem linku.';
-        } else if (status === 500) {
-          errorMessage = 'Błąd serwera przy przetwarzaniu żądania. Szczegóły w konsoli.';
-
-          if (data && data.message && data.message.includes('must not be null')) {
-            errorMessage = 'Nie znaleziono rozdziału o podanym ID. Proszę utworzyć rozdział przed dodaniem linku.';
+        if (response.status === 200 && response.data && response.data > 0) {
+          this.uploadSuccess = true;
+          this.errorMessage = '';
+          this.selectedFile = null;
+          if (this.$refs.fileInput) {
+            this.$refs.fileInput.value = '';
           }
+
+          if (this.isPromoter) {
+            await this.fetchStudentFiles();
+          } else {
+            await this.fetchFiles();
+          }
+          pushNotification('Plik został przesłany pomyślnie.', 'success');
         } else {
-          errorMessage = `Błąd serwera (${status}): ${data?.message || 'Nieznany błąd'}`;
+          throw new Error(`Upload failed. Server returned: ${response.data}`);
         }
 
-        console.error('Server error details:', {
-          status: status,
-          data: data,
-          url: apiUrl,
-          requestBody: linkData
-        });
-      } else if (error.request) {
-        errorMessage = 'Brak połączenia z serwerem. Sprawdź połączenie internetowe.';
-      } else if (error.message) {
-        errorMessage = `Błąd: ${error.message}`;
+      } catch (error) {
+        console.error('Upload error details:', error);
+
+        let errorMessage = 'Nie udało się przesłać pliku.';
+
+        if (error.response) {
+          const status = error.response.status;
+          const data = error.response.data;
+
+          if (status === 400) {
+            errorMessage = 'Nieprawidłowe dane. Sprawdź czy wybrano właściwego studenta.';
+          } else if (status === 500) {
+            errorMessage = 'Błąd serwera. Spróbuj ponownie później.';
+          } else {
+            errorMessage = `Błąd serwera (${status}): ${data?.message || 'Nieznany błąd'}`;
+          }
+
+          console.error('Server error:', {
+            status: status,
+            data: data,
+            uploaderId: uploaderId,
+            ownerId: ownerId
+          });
+
+        } else if (error.request) {
+          errorMessage = 'Brak połączenia z serwerem. Sprawdź połączenie internetowe.';
+        } else if (error.code === 'ECONNABORTED') {
+          errorMessage = 'Przekroczono limit czasu przesyłania. Spróbuj ponownie.';
+        } else {
+          errorMessage = `Błąd: ${error.message}`;
+        }
+
+        this.errorMessage = errorMessage;
+        this.uploadSuccess = false;
+      }
+    },
+
+    async shareOneNoteLink() {
+      if (this.isPromoter) {
+        await this.verifySupervisorStatus();
       }
 
-      this.errorMessage = errorMessage;
-      this.uploadSuccess = false;
-    }
-  },
+      if (this.isPromoter && !this.isSupervisor) {
+        this.errorMessage = 'Nie masz uprawnień do udostępniania linków tej grupie. Możesz udostępniać linki tylko grupom, których jesteś promotorem.';
+        return;
+      }
+
+      if (!this.oneNoteLink) {
+        this.errorMessage = 'Proszę wprowadzić link OneNote.';
+        return;
+      }
+
+      if (!this.selectedStudentId) {
+        this.errorMessage = 'Proszę wybrać studenta.';
+        return;
+      }
+
+      let uploaderId, ownerId;
+
+      try {
+        uploaderId = Number(authStore.userId);
+        ownerId = Number(this.selectedStudentId);
+      } catch (error) {
+        this.errorMessage = 'Błąd konwersji ID użytkownika.';
+        return;
+      }
+
+      if (!uploaderId || uploaderId <= 0 || !Number.isInteger(uploaderId)) {
+        this.errorMessage = 'Nieprawidłowe ID promotora.';
+        return;
+      }
+
+      if (!ownerId || ownerId <= 0 || !Number.isInteger(ownerId)) {
+        this.errorMessage = 'Nieprawidłowe ID studenta.';
+        return;
+      }
+
+      const linkData = {
+        owner_user_data_id: ownerId,
+        uploader_user_data_id: uploaderId,
+        link: this.oneNoteLink
+      };
+
+      let apiUrl = '';
+
+      try {
+        console.log('=== ONENOTE LINK DEBUG INFO ===');
+        console.log('Original authStore.userId:', authStore.userId, typeof authStore.userId);
+        console.log('Original selectedStudentId:', this.selectedStudentId, typeof this.selectedStudentId);
+        console.log('Converted uploaderId:', uploaderId, typeof uploaderId);
+        console.log('Converted ownerId:', ownerId, typeof ownerId);
+        console.log('isPromoter:', this.isPromoter);
+        console.log('Link details:', {
+          url: this.oneNoteLink
+        });
+
+        console.log('Preparing to send OneNote link:', linkData);
+
+        const chapters = await this.fetchChapters();
+
+        if (!chapters || chapters.length === 0) {
+          this.errorMessage = 'Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdział.';
+          return;
+        }
+
+        const studentChapter = chapters.find(chapter =>
+            chapter.owner_id === Number(this.selectedStudentId)
+        );
+
+        if (!studentChapter) {
+          console.warn('No chapter found for student ID:', this.selectedStudentId);
+          console.log('Available chapters:', chapters);
+          this.errorMessage = 'Nie znaleziono rozdziału dla wybranego studenta. Proszę najpierw utworzyć rozdział dla tego studenta.';
+          return;
+        }
+
+        const chapterId = studentChapter.id;
+        console.log('Using chapter ID for student:', chapterId, 'Student ID:', this.selectedStudentId);
+
+        if (!chapterId) {
+          this.errorMessage = 'Nie znaleziono ID rozdziału. Proszę najpierw utworzyć rozdział.';
+          return;
+        }
+
+        apiUrl = `/api/v1/chapter/addVersionWithLink?chapterIds=${chapterId}`;
+        console.log('Request URL:', apiUrl);
+
+        const response = await axios.post(apiUrl, linkData, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        });
+
+        if (response.status === 200 || response.status === 201) {
+          this.uploadSuccess = true;
+          this.errorMessage = '';
+          this.oneNoteLink = '';
+
+          await this.fetchStudentFiles();
+
+          console.log('OneNote link added successfully:', response.data);
+        } else {
+          throw new Error(`Link sharing failed. Server returned: ${response.data}`);
+        }
+
+      } catch (error) {
+        console.error('Error sharing OneNote link:', error);
+
+        let errorMessage = 'Nie udało się udostępnić linku.';
+
+        if (error.response) {
+          const status = error.response.status;
+          const data = error.response.data;
+
+          if (status === 400) {
+            errorMessage = 'Nieprawidłowe dane. Sprawdź poprawność linku i wybranego studenta.';
+          } else if (status === 404) {
+            errorMessage = 'Nie znaleziono rozdziału o podanym ID. Proszę utworzyć rozdział przed dodaniem linku.';
+          } else if (status === 500) {
+            errorMessage = 'Błąd serwera przy przetwarzaniu żądania. Szczegóły w konsoli.';
+
+            if (data && data.message && data.message.includes('must not be null')) {
+              errorMessage = 'Nie znaleziono rozdziału o podanym ID. Proszę utworzyć rozdział przed dodaniem linku.';
+            }
+          } else {
+            errorMessage = `Błąd serwera (${status}): ${data?.message || 'Nieznany błąd'}`;
+          }
+
+          console.error('Server error details:', {
+            status: status,
+            data: data,
+            url: apiUrl,
+            requestBody: linkData
+          });
+        } else if (error.request) {
+          errorMessage = 'Brak połączenia z serwerem. Sprawdź połączenie internetowe.';
+        } else if (error.message) {
+          errorMessage = `Błąd: ${error.message}`;
+        }
+
+        this.errorMessage = errorMessage;
+        this.uploadSuccess = false;
+      }
+    },
 
     formatDate(dateString) {
       const date = new Date(dateString);
@@ -1241,7 +1243,7 @@ export default {
         this.fileComments[versionId] = this.fileComment;
       } catch (error) {
         console.error('Error fetching comments:', error);
-        
+
         // Handle 404 specifically - it just means no comments exist yet
         if (error.response?.status === 404) {
           console.log('No comments found (404) - this is normal for files without comments');
@@ -1251,7 +1253,7 @@ export default {
           // Other errors show a more specific message
           console.error('Unexpected error fetching comments:', error);
           this.fileComment = '';
-          
+
           // Only show error message for non-404 errors
           if (error.response?.status !== 404) {
             this.errorMessage = 'Nie udało się pobrać komentarza do pliku.';
@@ -1306,15 +1308,15 @@ export default {
           if (chapters && chapters.length > 0) {
             // For promoters, find chapter belonging to selected student
             if (this.isPromoter && this.selectedStudentId) {
-              const studentChapter = chapters.find(chapter => 
-                chapter.owner_id === Number(this.selectedStudentId)
+              const studentChapter = chapters.find(chapter =>
+                  chapter.owner_id === Number(this.selectedStudentId)
               );
               chapterId = studentChapter ? studentChapter.id : null;
-            } 
+            }
             // For students, find their own chapter
             else if (!this.isPromoter) {
-              const userChapter = chapters.find(chapter => 
-                chapter.owner_id === Number(this.userId)
+              const userChapter = chapters.find(chapter =>
+                  chapter.owner_id === Number(this.userId)
               );
               chapterId = userChapter ? userChapter.id : null;
             }
@@ -1522,7 +1524,7 @@ export default {
 
           // Filter out logged in user and get other members
           this.groupMembers = allMembers.filter(member =>
-            member.id !== Number(this.userId)
+              member.id !== Number(this.userId)
           );
 
           console.log('Group members (excluding logged in user):', this.groupMembers);
@@ -1572,11 +1574,11 @@ export default {
         // Build query string with multiple ownerId parameters
         const ownerIdParams = ownerIds.map(id => `ownerId=${id}`).join('&');
         const url = `/api/v1/file?${ownerIdParams}&uploaderId=${uploaderId}`;
-        
+
         console.log('Multi-author upload URL:', url);
 
         const response = await axios.post(url, formData, {
-          headers: { 
+          headers: {
             'Content-Type': 'multipart/form-data'
           },
           timeout: 30000
@@ -1589,9 +1591,9 @@ export default {
           if (this.$refs.fileInput) {
             this.$refs.fileInput.value = '';
           }
-          
+
           this.closeMultiAuthorModal();
-          
+
           // Refresh files after upload
           if (this.isPromoter) {
             await this.fetchStudentFiles();
@@ -1657,11 +1659,11 @@ export default {
         // Build query string with multiple ownerId parameters for selected students
         const ownerIdParams = selectedStudentIds.map(id => `ownerId=${id}`).join('&');
         const url = `/api/v1/file?${ownerIdParams}&uploaderId=${uploaderId}`;
-        
+
         console.log('Promoter multi-author upload URL:', url);
 
         const response = await axios.post(url, formData, {
-          headers: { 
+          headers: {
             'Content-Type': 'multipart/form-data'
           },
           timeout: 30000
@@ -1674,9 +1676,9 @@ export default {
           if (this.$refs.fileInput) {
             this.$refs.fileInput.value = '';
           }
-          
+
           this.closePromoterMultiAuthorModal();
-          
+
           // Refresh files after upload
           if (this.isPromoter) {
             await this.fetchStudentFiles();
@@ -1715,7 +1717,7 @@ export default {
 
     async sharePromoterMultiAuthorLink() {
       console.log('=== PROMOTER MULTI-AUTHOR LINK SHARE CALLED ===');
-      
+
       if (this.promoterSelectedStudents.length === 0) {
         console.log('No students selected');
         this.errorMessage = 'Musisz wybrać co najmniej jednego studenta.';
@@ -1743,7 +1745,7 @@ export default {
 
         // Get chapters for all selected students
         const chapters = await this.fetchChapters();
-        
+
         if (!chapters || chapters.length === 0) {
           this.errorMessage = 'Nie znaleziono rozdziałów dla tego projektu. Proszę najpierw utworzyć rozdziały.';
           return;
@@ -1800,8 +1802,8 @@ export default {
         console.log('All responses received:', responses.map(r => ({ status: r.status, data: r.data })));
 
         // Check if all requests were successful
-        const allSuccessful = responses.every(response => 
-          response.status === 200 || response.status === 201
+        const allSuccessful = responses.every(response =>
+            response.status === 200 || response.status === 201
         );
 
         if (allSuccessful) {
@@ -1823,9 +1825,9 @@ export default {
 
       } catch (error) {
         console.error('Promoter multi-author link share error:', error);
-        
+
         let errorMessage = 'Nie udało się udostępnić linku wieloautorskiego.';
-        
+
         if (error.response) {
           const status = error.response.status;
           const data = error.response.data;
@@ -1844,7 +1846,7 @@ export default {
         } else if (error.message) {
           errorMessage = `Błąd: ${error.message}`;
         }
-        
+
         this.errorMessage = errorMessage;
         console.log('Error message set:', this.errorMessage);
       }
