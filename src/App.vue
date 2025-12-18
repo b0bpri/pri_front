@@ -1,7 +1,8 @@
 <template>
   <div id="app">
-    <NavBar />
-    <router-view />
+    <NavBar>
+      <router-view />
+    </NavBar>
     <NotivueNotification />
   </div>
 </template>
