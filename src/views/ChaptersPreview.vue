@@ -15,7 +15,7 @@
         <h6 v-if="chapterTitleEng" class="subtitle">Tytuł &#127468;&#127463: {{ chapterTitleEng }}</h6>
       </div>
 
-      <!-- Dropdown: Lista studentów dla promotora -->
+      <!-- Dropdown: Student's list for promoter -->
       <div class="student-selector" v-if="isPromoter">
         <strong class="form-label">Student z grupy {{ groupName }}:</strong>
         <select v-model="selectedStudentId" class="dropdown-content" @change="fetchStudentFiles">
