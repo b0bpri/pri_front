@@ -5,6 +5,7 @@ import 'vue-timeline-chart/style.css';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import authStore from '/src/stores/authStore.js';
+import ToggleTextBox from '@/components/ToggleTextBox.vue';
 
 const router = useRouter();
 
@@ -24,7 +25,7 @@ const fetchTimeline = async () => {
     
     // Fetch the timeline using the thesis ID
     const response = await axios.get(`/api/v1/timeline/view/byThesisId/${props.thesisId}`);
-    
+    console.log('Timeline response:', response.data);
     if (!response.data) {
       console.error('No timeline data returned for thesis ID:', props.thesisId);
       error.value = 'No timeline data available';
@@ -240,7 +241,12 @@ onMounted(async () => {
         Powrót
       </button>
     </div>
-    
+    <div>
+      <!-- Other content -->
+      <ToggleTextBox
+          content="This is some helpful information that appears when you click the button."
+      />
+    </div>
     <div class="card timeline-card">
       <Timeline
           class="timeline"
