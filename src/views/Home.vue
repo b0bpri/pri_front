@@ -1,6 +1,36 @@
 <template>
   <div class="wrapper">
     <div class="card">
+      <h2 class="title">Logowanie</h2>
+      <form @submit.prevent="login" class="login-form">
+        <div class="form-group">
+          <label for="username">Nazwa użytkownika:</label>
+          <input 
+            type="text" 
+            id="username" 
+            v-model="username" 
+            placeholder="Wprowadź nazwę użytkownika"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="password">Hasło:</label>
+          <input 
+            type="password" 
+            id="password" 
+            v-model="password" 
+            placeholder="Wprowadź hasło"
+            required
+          />
+        </div>
+        <button type="submit" class="login-btn">Zaloguj się</button>
+      </form>
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      
+      <div class="divider">
+        <span>LUB SZYBKIE LOGOWANIE</span>
+      </div>
+      
       <h2 class="title">Wybierz rolę</h2>
       <div class="button-group">
         <button class="role-btn" @click="loginAsStudent">Zaloguj jako Student: Tomasz Wasyłyk</button>
@@ -10,7 +40,6 @@
         <button class="role-btn alt-btn" @click="loginAsAlternateStudent">Zaloguj jako Student: Katarzyna Strzyżewska</button>
         <button class="role-btn alt-btn" @click="loginAsAlternatePromoter">Zaloguj jako Promotor: Marcin Szczepański</button>
       </div>
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
@@ -24,6 +53,8 @@ export default {
   name: 'Home',
   data() {
     return {
+      username: '',
+      password: '',
       errorMessage: ''
     };
   },
@@ -33,6 +64,24 @@ export default {
     return { router };
   },
   methods: {
+    async login() {
+      this.errorMessage = '';
+      try {
+        const response = await axios.post('/api/v1/auth/login', {
+          username: this.username,
+          password: this.password
+        });
+        
+        console.log('Login successful:', response.data);
+        
+        // Handle successful login, will need to set user data in authStore
+        this.router.push('/groups-panel');
+      } catch (error) {
+        console.error('Login error:', error);
+        this.errorMessage = error.response?.data?.message || 'Nie udało się zalogować. Sprawdź dane logowania.';
+      }
+    },
+
     async loginAsStudent() {
       this.errorMessage = '';
       try {
