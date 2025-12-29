@@ -67,15 +67,42 @@ export default {
     async login() {
       this.errorMessage = '';
       try {
-        const response = await axios.post('/api/v1/auth/login', {
+        // Login to get user details
+        const loginResponse = await axios.post('/api/v1/auth/login', {
           username: this.username,
           password: this.password
         });
         
-        console.log('Login successful:', response.data);
+        const userData = loginResponse.data;
+        console.log('Login successful:', userData);
         
-        // Handle successful login, will need to set user data in authStore
-        this.router.push('/groups-panel');
+        // Extract user information
+        const isPromoter = userData.role === 'PROMOTER' || userData.isPromoter || false;
+        const userId = userData.id || userData.userId;
+        const firstName = userData.fName || userData.fname || userData.firstName || '';
+        const lastName = userData.lName || userData.lname || userData.lastName || '';
+        const roles = userData.role || userData.roles || (isPromoter ? 'PROMOTER' : 'STUDENT');
+        
+        // Get JWT token
+        const tokenResponse = await axios.get('/api/v1/auth/token', {
+          params: {
+            username: this.username,
+            roles: roles
+          }
+        });
+        
+        const token = tokenResponse.data;
+        console.log('Token received');
+        
+        // Save to authStore 
+        authStore.setUser(isPromoter, userId, firstName, lastName, token);
+        
+        // Redirect based on role
+        if (isPromoter) {
+          this.router.push('/groups-panel');
+        } else {
+          await this.redirectStudentToChapters(userId);
+        }
       } catch (error) {
         console.error('Login error:', error);
         this.errorMessage = error.response?.data?.message || 'Nie udało się zalogować. Sprawdź dane logowania.';
