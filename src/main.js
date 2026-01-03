@@ -7,6 +7,8 @@ import studentIcon from './assets/student_icon.png'
 import { createNotivue } from 'notivue'
 import 'notivue/notifications.css'
 import 'notivue/animations.css'
+import axios from 'axios'
+import authStore from './stores/authStore'
 
 const link = document.createElement('link')
 link.rel = 'icon'
@@ -15,6 +17,19 @@ document.head.appendChild(link)
 
 const notivue = createNotivue()
 
+//JWT Interceprtor 
+axios.interceptors.request.use(
+  (config) => {
+    const token = authStore.token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const app = createApp(App)
 app.use(router)

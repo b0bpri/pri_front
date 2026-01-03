@@ -1,6 +1,36 @@
 <template>
   <div class="wrapper">
     <div class="card">
+      <h2 class="title">Logowanie</h2>
+      <form @submit.prevent="login" class="login-form">
+        <div class="form-group">
+          <label for="username">Nazwa użytkownika:</label>
+          <input 
+            type="text" 
+            id="username" 
+            v-model="username" 
+            placeholder="Wprowadź nazwę użytkownika"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="password">Hasło:</label>
+          <input 
+            type="password" 
+            id="password" 
+            v-model="password" 
+            placeholder="Wprowadź hasło"
+            required
+          />
+        </div>
+        <button type="submit" class="login-btn">Zaloguj się</button>
+      </form>
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      
+      <div class="divider">
+        <span>LUB SZYBKIE LOGOWANIE</span>
+      </div>
+      
       <h2 class="title">Wybierz rolę</h2>
       <div class="button-group">
         <button class="role-btn" @click="loginAsStudent">Zaloguj jako Student: Tomasz Wasyłyk</button>
@@ -10,7 +40,6 @@
         <button class="role-btn alt-btn" @click="loginAsAlternateStudent">Zaloguj jako Student: Katarzyna Strzyżewska</button>
         <button class="role-btn alt-btn" @click="loginAsAlternatePromoter">Zaloguj jako Promotor: Marcin Szczepański</button>
       </div>
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
@@ -24,6 +53,8 @@ export default {
   name: 'Home',
   data() {
     return {
+      username: '',
+      password: '',
       errorMessage: ''
     };
   },
@@ -33,6 +64,40 @@ export default {
     return { router };
   },
   methods: {
+    async login() {
+      this.errorMessage = '';
+      try {
+        // Login to get user details
+        const loginResponse = await axios.post('/api/v1/auth/login', {
+          username: this.username,
+          password: this.password
+        });
+        
+        const userData = loginResponse.data;
+        console.log('Login successful:', userData);
+        
+        // Extract user information from new API format
+        const token = userData.token;
+        const userId = userData.id;
+        const firstName = userData.first_name || '';
+        const lastName = userData.last_name || '';
+        const isPromoter = userData.is_promoter || false;
+        
+        // Save to authStore 
+        authStore.setUser(isPromoter, userId, firstName, lastName, token);
+        
+        // Redirect based on role
+        if (isPromoter) {
+          this.router.push('/groups-panel');
+        } else {
+          await this.redirectStudentToChapters(userId);
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        this.errorMessage = error.response?.data?.message || 'Nie udało się zalogować. Sprawdź dane logowania.';
+      }
+    },
+
     async loginAsStudent() {
       this.errorMessage = '';
       try {
@@ -146,9 +211,11 @@ export default {
     },
 
     async redirectStudentToChapters(studentId) {
+      console.log('[redirectStudentToChapters] Starting for studentId:', studentId);
       try {
         // Fetch all groups to find which group this student belongs to
         const response = await axios.get('/api/v1/view/groups/all');
+        console.log('[redirectStudentToChapters] API response:', response.data);
         
         let groups = [];
         if (response.data && Array.isArray(response.data.dtos)) {
@@ -157,14 +224,20 @@ export default {
           groups = response.data;
         }
 
+        console.log('[redirectStudentToChapters] Total groups found:', groups.length);
+
         // Find the group logged in student belongs to
-        const studentGroup = groups.find(group => 
-          group.students && Array.isArray(group.students) && 
-          group.students.some(student => student.id === studentId)
-        );
+        const studentGroup = groups.find(group => {
+          const hasStudents = group.students && Array.isArray(group.students);
+          const foundStudent = hasStudents && group.students.some(student => student.id === studentId);
+          console.log('[redirectStudentToChapters] Checking group:', group.name, 'hasStudents:', hasStudents, 'foundStudent:', foundStudent);
+          return foundStudent;
+        });
+
+        console.log('[redirectStudentToChapters] Student group found:', studentGroup);
 
         if (studentGroup && studentGroup.project_id) {
-          console.log('Found student group:', studentGroup);
+          console.log('[redirectStudentToChapters] Found student group with project_id:', studentGroup.project_id);
           
           // Check if thesis is accepted 
           let groupWithThesisStatus = { ...studentGroup };
@@ -174,11 +247,11 @@ export default {
             try {
               const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${studentGroup.project_id}`);
               const thesisData = thesisResponse.data;
-              console.log('Thesis response for project:', studentGroup.project_id, thesisData);
+              console.log('[redirectStudentToChapters] Thesis response for project:', studentGroup.project_id, thesisData);
               
               groupWithThesisStatus.thesis_status = thesisData.approval_status || thesisData.status || 'PENDING';
             } catch (thesisError) {
-              console.warn('Could not fetch thesis status, defaulting to PENDING:', thesisError);
+              console.warn('[redirectStudentToChapters] Could not fetch thesis status, defaulting to PENDING:', thesisError);
               groupWithThesisStatus.thesis_status = 'PENDING';
             }
           }
@@ -186,11 +259,11 @@ export default {
           // Use the same logic as GroupsPanel for checking thesis acceptance
           const isThesisAccepted = groupWithThesisStatus.thesis_status === 'APPROVED';
 
-          console.log('Thesis status:', groupWithThesisStatus.thesis_status, 'Is accepted:', isThesisAccepted);
+          console.log('[redirectStudentToChapters] Thesis status:', groupWithThesisStatus.thesis_status, 'Is accepted:', isThesisAccepted);
           
           if (isThesisAccepted) {
             // Redirect to ChaptersPreview if thesis is accepted
-            console.log('Redirecting to ChaptersPreview for accepted thesis');
+            console.log('[redirectStudentToChapters] Redirecting to ChaptersPreview for accepted thesis');
             this.router.push({ 
               name: 'ChaptersPreview', 
               params: { id: studentGroup.project_id.toString() },
@@ -200,7 +273,7 @@ export default {
             });
           } else {
             // Redirect to Thesis view if thesis is not accepted yet
-            console.log('Redirecting to Thesis view for non-accepted thesis');
+            console.log('[redirectStudentToChapters] Redirecting to Thesis view for non-accepted thesis');
             this.router.push({ 
               name: 'Thesis', 
               params: { groupId: studentGroup.project_id.toString() },
@@ -210,11 +283,13 @@ export default {
             });
           }
         } else {
-          console.warn('Student does not belong to any group, redirecting to groups panel');
+          console.warn('[redirectStudentToChapters] Student does not belong to any group or no project_id, redirecting to groups panel');
+          console.warn('[redirectStudentToChapters] studentGroup:', studentGroup);
           this.router.push('/groups-panel');
         }
       } catch (error) {
-        console.error('Error redirecting student to chapters:', error);
+        console.error('[redirectStudentToChapters] Error redirecting student to chapters:', error);
+        console.error('[redirectStudentToChapters] Error details:', error.response?.data, error.message);
         this.router.push('/groups-panel');
       }
     }

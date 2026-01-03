@@ -15,7 +15,7 @@ const loadAuthState = () => {
     console.error('Error loading auth state from cookies:', error);
     Cookies.remove(AUTH_KEY);
   }
-  return { isPromoter: false, userId: null, fname: '', lname: '' };
+  return { isPromoter: false, userId: null, fname: '', lname: '', token: null };
 };
 
 const authStore = reactive(loadAuthState());
@@ -25,7 +25,7 @@ watch(
   (newState) => {
     if (newState.userId) {
       console.log('Saving auth state to cookies:', newState);
-      Cookies.set(AUTH_KEY, JSON.stringify(newState), { expires: 7 });
+      Cookies.set(AUTH_KEY, JSON.stringify(newState), { expires: 1/24 }); //1hour 
     } else {
       console.log('Removing auth state from cookies');
       Cookies.remove(AUTH_KEY);
@@ -34,12 +34,13 @@ watch(
   { deep: true }
 );
 
-authStore.setUser = (isPromoter, userId, fname, lname) => {
-  console.log('Setting user:', { isPromoter, userId, fname, lname });
+authStore.setUser = (isPromoter, userId, fname, lname, token = null) => {
+  console.log('Setting user:', { isPromoter, userId, fname, lname, token: token ? '***' : null });
   authStore.isPromoter = isPromoter;
   authStore.userId = userId;
   authStore.fname = fname;
   authStore.lname = lname;
+  authStore.token = token;
 };
 
 authStore.logout = () => {
@@ -48,6 +49,7 @@ authStore.logout = () => {
   authStore.userId = null;
   authStore.fname = '';
   authStore.lname = '';
+  authStore.token = null;
 };
 
 console.log('AuthStore initialized:', { ...authStore });
