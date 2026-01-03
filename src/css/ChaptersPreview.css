@@ -195,8 +195,11 @@
 
 .success-message {
     color: #28a745;
-    margin-top: 0.5rem;
+    margin: 0;
+    padding: 0.5rem 0;
     font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .error-message {
