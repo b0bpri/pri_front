@@ -48,6 +48,7 @@
 import authStore from '/src/stores/authStore';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { clearRouterCache } from '../router/index';
 
 export default {
   name: 'Home',
@@ -60,7 +61,6 @@ export default {
   },
   setup() {
     const router = useRouter();
-
     return { router };
   },
   methods: {
@@ -86,11 +86,15 @@ export default {
         // Save to authStore 
         authStore.setUser(isPromoter, userId, firstName, lastName, token);
         
-        // Redirect based on role
+        // Clear router cache on new login
+        clearRouterCache();
+        
+        // Redirect based on role - router guard will handle the rest
         if (isPromoter) {
           this.router.push('/groups-panel');
         } else {
-          await this.redirectStudentToChapters(userId);
+          // Let router guard handle student redirection
+          this.router.push('/groups-panel');
         }
       } catch (error) {
         console.error('Login error:', error);
@@ -119,7 +123,10 @@ export default {
 
         authStore.setUser(false, 30, firstName, lastName);
         console.log('Student login successful:', authStore);
-        await this.redirectStudentToChapters(30);
+        
+        // Clear router cache and let router guard handle redirection
+        clearRouterCache();
+        this.router.push('/groups-panel');
       } catch (error) {
         console.error('Error logging in as student:', error);
         this.errorMessage = `Nie udało się zalogować jako student: ${error.message}`;
@@ -147,6 +154,9 @@ export default {
 
         authStore.setUser(true, 1, firstName, lastName);
         console.log('Promoter login successful:', authStore);
+        
+        // Clear router cache on new login
+        clearRouterCache();
         this.router.push('/groups-panel');
       } catch (error) {
         console.error('Error logging in as promoter:', error);
@@ -175,7 +185,10 @@ export default {
 
         authStore.setUser(false, 28, firstName, lastName);
         console.log('Alternate student login successful:', authStore);
-        await this.redirectStudentToChapters(28);
+        
+        // Clear router cache and let router guard handle redirection
+        clearRouterCache();
+        this.router.push('/groups-panel');
       } catch (error) {
         console.error('Error logging in as alternate student:', error);
         this.errorMessage = `Nie udało się zalogować jako student: ${error.message}`;
@@ -203,94 +216,13 @@ export default {
 
         authStore.setUser(true, 32, firstName, lastName);
         console.log('Alternate promoter login successful:', authStore);
+        
+        // Clear router cache on new login
+        clearRouterCache();
         this.router.push('/groups-panel');
       } catch (error) {
         console.error('Error logging in as alternate promoter:', error);
         this.errorMessage = `Nie udało się zalogować jako promotor: ${error.message}`;
-      }
-    },
-
-    async redirectStudentToChapters(studentId) {
-      console.log('[redirectStudentToChapters] Starting for studentId:', studentId);
-      try {
-        // Fetch all groups to find which group this student belongs to
-        const response = await axios.get('/api/v1/view/groups/all');
-        console.log('[redirectStudentToChapters] API response:', response.data);
-        
-        let groups = [];
-        if (response.data && Array.isArray(response.data.dtos)) {
-          groups = response.data.dtos;
-        } else if (response.data && Array.isArray(response.data)) {
-          groups = response.data;
-        }
-
-        console.log('[redirectStudentToChapters] Total groups found:', groups.length);
-
-        // Find the group logged in student belongs to
-        const studentGroup = groups.find(group => {
-          const hasStudents = group.students && Array.isArray(group.students);
-          const foundStudent = hasStudents && group.students.some(student => student.id === studentId);
-          console.log('[redirectStudentToChapters] Checking group:', group.name, 'hasStudents:', hasStudents, 'foundStudent:', foundStudent);
-          return foundStudent;
-        });
-
-        console.log('[redirectStudentToChapters] Student group found:', studentGroup);
-
-        if (studentGroup && studentGroup.project_id) {
-          console.log('[redirectStudentToChapters] Found student group with project_id:', studentGroup.project_id);
-          
-          // Check if thesis is accepted 
-          let groupWithThesisStatus = { ...studentGroup };
-          
-          // Fetch thesis status if not already present
-          if (!studentGroup.thesis_status && !studentGroup.isThesisAccepted && !studentGroup.thesisAccepted) {
-            try {
-              const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${studentGroup.project_id}`);
-              const thesisData = thesisResponse.data;
-              console.log('[redirectStudentToChapters] Thesis response for project:', studentGroup.project_id, thesisData);
-              
-              groupWithThesisStatus.thesis_status = thesisData.approval_status || thesisData.status || 'PENDING';
-            } catch (thesisError) {
-              console.warn('[redirectStudentToChapters] Could not fetch thesis status, defaulting to PENDING:', thesisError);
-              groupWithThesisStatus.thesis_status = 'PENDING';
-            }
-          }
-
-          // Use the same logic as GroupsPanel for checking thesis acceptance
-          const isThesisAccepted = groupWithThesisStatus.thesis_status === 'APPROVED';
-
-          console.log('[redirectStudentToChapters] Thesis status:', groupWithThesisStatus.thesis_status, 'Is accepted:', isThesisAccepted);
-          
-          if (isThesisAccepted) {
-            // Redirect to ChaptersPreview if thesis is accepted
-            console.log('[redirectStudentToChapters] Redirecting to ChaptersPreview for accepted thesis');
-            this.router.push({ 
-              name: 'ChaptersPreview', 
-              params: { id: studentGroup.project_id.toString() },
-              query: { 
-                name: studentGroup.name || 'Unknown Group'
-              }
-            });
-          } else {
-            // Redirect to Thesis view if thesis is not accepted yet
-            console.log('[redirectStudentToChapters] Redirecting to Thesis view for non-accepted thesis');
-            this.router.push({ 
-              name: 'Thesis', 
-              params: { groupId: studentGroup.project_id.toString() },
-              query: { 
-                name: studentGroup.name || 'Unknown Group'
-              }
-            });
-          }
-        } else {
-          console.warn('[redirectStudentToChapters] Student does not belong to any group or no project_id, redirecting to groups panel');
-          console.warn('[redirectStudentToChapters] studentGroup:', studentGroup);
-          this.router.push('/groups-panel');
-        }
-      } catch (error) {
-        console.error('[redirectStudentToChapters] Error redirecting student to chapters:', error);
-        console.error('[redirectStudentToChapters] Error details:', error.response?.data, error.message);
-        this.router.push('/groups-panel');
       }
     }
   }

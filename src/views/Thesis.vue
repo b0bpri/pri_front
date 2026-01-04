@@ -111,7 +111,7 @@
           <div class="chapter-actions">
             <!-- For own chapter or student view of their own chapter -->
             <button 
-              v-if="userId === chapter.user_id || userId === chapter.user_data_id"
+              v-if="userId === chapter.owner_id || userId === chapter.user_id || userId === chapter.user_data_id"
               class="btn btn-view"
               @click="viewChapter(chapter)"
             >
@@ -564,13 +564,15 @@ export default {
             const chapters = response.data.chapters;
           
             this.groupChapters = await Promise.all(chapters.map(async chapter => {
+              const chapterUserId = chapter.owner_id || chapter.user_data_id || chapter.user_id || chapter.userId;
+              
               let studentName = '';
 
-              if (chapter.user_data_id) {
+              if (chapterUserId) {
                 try {
                   const userResponse = await axios.get(`/api/v1/view/groups/students?id=${projectId}`);
                   if (userResponse.data && Array.isArray(userResponse.data)) {
-                    const studentData = userResponse.data.find(student => student.id === chapter.user_data_id);
+                    const studentData = userResponse.data.find(student => student.id === chapterUserId);
                     if (studentData) {
                       studentName = `${studentData.fname || ''} ${studentData.lname || ''}`.trim();
                     }
@@ -583,9 +585,11 @@ export default {
               return {
                 ...chapter,
                 chapter_id: chapter.id,
-                user_id: chapter.user_data_id,
-                userId: chapter.user_data_id,
-                studentName: studentName || `Student ID: ${chapter.user_data_id}`,
+                owner_id: chapterUserId,
+                user_id: chapterUserId,
+                user_data_id: chapterUserId,
+                userId: chapterUserId,
+                studentName: studentName || (chapterUserId ? `Student ID: ${chapterUserId}` : 'Nieznany student'),
                 status: chapter.approval_status?.toLowerCase() || 'pending',
                 title: chapter.title || 'Bez tytułu',
                 description: chapter.description || 'Brak opisu'
@@ -605,9 +609,12 @@ export default {
           }
         }
         
-        this.ownChapter = this.groupChapters.find(chapter => 
-          chapter.user_id === this.userId || chapter.user_data_id === this.userId
-        );
+        this.ownChapter = this.groupChapters.find(chapter => {
+          return chapter.owner_id === this.userId ||
+                 chapter.user_id === this.userId || 
+                 chapter.user_data_id === this.userId ||
+                 chapter.userId === this.userId;
+        });
         
       } catch (error) {
         console.error('Błąd przy pobieraniu rozdziałów grupy:', error);
@@ -644,7 +651,9 @@ export default {
     viewChapter(chapter) {
 
       this.selectedChapterId = chapter.chapter_id || chapter.id;
-      this.editingOwnChapter = chapter.user_id === this.userId || chapter.user_data_id === this.userId;
+      this.editingOwnChapter = chapter.owner_id === this.userId || 
+                              chapter.user_id === this.userId || 
+                              chapter.user_data_id === this.userId;
       this.readOnlyMode = false;
       this.showChapterModal = true;
       

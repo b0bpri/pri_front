@@ -79,8 +79,25 @@ const router = createRouter({
   routes,
 })
 
-// Helper function to get student's group
-const getStudentGroup = async (authStore) => {
+// Cache for groups and thesis status to reduce API calls
+const cache = {
+  groups: null,
+  groupsTimestamp: 0,
+  thesisStatus: {},
+  thesisTimestamp: {},
+  CACHE_DURATION: 30000 // 30 seconds
+};
+
+// Helper function to get cached or fetch groups
+const getGroupsWithCache = async () => {
+  const now = Date.now();
+  
+  if (cache.groups && (now - cache.groupsTimestamp < cache.CACHE_DURATION)) {
+    console.log('[Cache] Using cached groups');
+    return cache.groups;
+  }
+  
+  console.log('[Cache] Fetching fresh groups');
   try {
     const axios = (await import('axios')).default;
     const response = await axios.get('/api/v1/view/groups/all');
@@ -90,28 +107,63 @@ const getStudentGroup = async (authStore) => {
     } else if (response.data && Array.isArray(response.data)) {
       groups = response.data;
     }
-
-    return groups.find(group => 
-      group.students && Array.isArray(group.students) && 
-      group.students.some(student => student.id === authStore.userId)
-    );
+    
+    cache.groups = groups;
+    cache.groupsTimestamp = now;
+    return groups;
   } catch (error) {
-    console.error('[Router Guard] Error fetching student group:', error);
-    return null;
+    console.error('[Cache] Error fetching groups:', error);
+    return [];
   }
 };
 
-// Helper function to get thesis status
-const getThesisStatus = async (projectId) => {
+// Helper function to get cached or fetch thesis status
+const getThesisStatusWithCache = async (projectId) => {
+  const now = Date.now();
+  const cacheKey = projectId.toString();
+  
+  if (cache.thesisStatus[cacheKey] && 
+      (now - (cache.thesisTimestamp[cacheKey] || 0) < cache.CACHE_DURATION)) {
+    console.log('[Cache] Using cached thesis status for project:', projectId);
+    return cache.thesisStatus[cacheKey];
+  }
+  
+  console.log('[Cache] Fetching fresh thesis status for project:', projectId);
   try {
     const axios = (await import('axios')).default;
     const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${projectId}`);
-    const thesisData = thesisResponse.data;
-    return thesisData.approval_status || thesisData.status || 'PENDING';
+    const status = thesisResponse.data.approval_status || thesisResponse.data.status || 'PENDING';
+    
+    cache.thesisStatus[cacheKey] = status;
+    cache.thesisTimestamp[cacheKey] = now;
+    return status;
   } catch (error) {
-    console.warn('Could not fetch thesis status:', error);
+    console.warn('[Cache] Error fetching thesis status:', error);
     return 'PENDING';
   }
+};
+
+// Function to clear cache
+export function clearRouterCache() {
+  console.log('[Cache] Clearing router cache');
+  cache.groups = null;
+  cache.groupsTimestamp = 0;
+  cache.thesisStatus = {};
+  cache.thesisTimestamp = {};
+}
+
+// Helper function to get student's group
+const getStudentGroup = async (authStore) => {
+  const groups = await getGroupsWithCache();
+  return groups.find(group => 
+    group.students && Array.isArray(group.students) && 
+    group.students.some(student => student.id === authStore.userId)
+  );
+};
+
+// Helper function to get thesis status (uses cache)
+const getThesisStatus = async (projectId) => {
+  return await getThesisStatusWithCache(projectId);
 };
 
 // Navigation protection based on user role
