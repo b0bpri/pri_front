@@ -228,6 +228,10 @@
     content: "📋";
 }
 
+.icon-grade::before {
+    content: "📝";
+}
+
 .groups-container .action-buttons {
   display: flex;
   gap: 0.5rem;

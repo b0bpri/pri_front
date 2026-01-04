@@ -7,7 +7,7 @@
       </button>
     </div>
 
-    <!-- Filtrowanie -->
+    <!-- Filters -->
     <div class="filters-section">
       <div class="filter-group">
         <input type="text" class="search-input" placeholder="Przeszukaj grupy..." v-model="searchTerm">
@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <!-- Wczytanie grup -->
+    <!-- Loading groups -->
     <div v-if="loading" class="loading-state">
       <p>Ładowanie grup projektów...</p>
     </div>
@@ -38,7 +38,7 @@
       <p class="success-message">{{ successMessage }}</p>
     </div>
 
-    <!-- Tabela grup -->
+    <!-- Group table -->
     <div v-else class="table-container">
       <table class="groups-table">
         <thead>
@@ -128,6 +128,13 @@
                   {{ (isUserInGroup(group) || isPromoter) && isThesisAccepted(group) ? 'Ustal termin obrony' : 'Brak dostępu' }}
                 </button>
 
+                <button v-if="isPromoter && isThesisAccepted(group) && isGroupSupervisor(group)"
+                        class="action-btn secondary"
+                        @click.stop="openGradeModal(group)">
+                  <i class="icon-grade"></i>
+                  Dodaj ocenę opisową
+                </button>
+
               </div>
             </td>
           </tr>
@@ -167,6 +174,34 @@
       </div>
     </div>
   </div>
+
+  <!-- Add Grade Modal -->
+  <div class="modal fade" id="gradeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Dodaj ocenę opisową - {{ selectedGroup?.name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="gradeDescription" class="form-label">Opis oceny:</label>
+            <textarea
+                id="gradeDescription"
+                class="form-control"
+                v-model="gradeDescription"
+                rows="8"
+                placeholder="Wprowadź ocenę opisową pracy dyplomowej..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+          <button type="button" class="btn btn-primary" @click="saveGrade">Zapisz</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -189,7 +224,10 @@ export default {
       sortDirection: 'asc',
       userGroups: [], 
       userId: authStore.userId,
-      isPromoter: authStore.isPromoter
+      isPromoter: authStore.isPromoter,
+      selectedGroup: null,
+      gradeDescription: '',
+      gradeModal: null
     };
   },
   computed: {
@@ -205,7 +243,7 @@ export default {
     filteredGroups() {
       let filtered = this.groups.filter(group => !!group.project_id);
 
-      // Wyszukiwanie
+      // Search term
       if (this.searchTerm) {
         const term = this.searchTerm.toLowerCase();
         filtered = filtered.filter(group => 
@@ -214,7 +252,7 @@ export default {
         );
       }
 
-      // Promotor
+      // Promoter filter
       if (this.selectedSupervisor) {
         filtered = filtered.filter(group => 
           group.supervisor && group.supervisor.lname === this.selectedSupervisor
@@ -341,7 +379,6 @@ export default {
       }
       
       // Check if the current user (promoter) is the supervisor of this group
-      // The supervisor ID in the API response is what we need to check against authStore.userId
       return group.supervisor.id === Number(authStore.userId);
     },
     
@@ -499,6 +536,46 @@ export default {
       const modal = new Modal(document.getElementById('defenseDateModal'));
       modal.show();
     },
+    
+    openGradeModal(group) {
+      this.selectedGroup = group;
+      this.gradeDescription = '';
+      
+      // TODO Endpoint
+
+      if (!this.gradeModal) {
+        this.gradeModal = new Modal(document.getElementById('gradeModal'));
+      }
+      this.gradeModal.show();
+    },
+    
+    async saveGrade() {
+      if (!this.selectedGroup) {
+        return;
+      }
+      
+      if (!this.gradeDescription.trim()) {
+        this.errorMessage = 'Opis oceny nie może być pusty.';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 3000);
+        return;
+      }
+      
+      // TODO Endpoint
+      console.log('Saving grade for group:', this.selectedGroup.name);
+      console.log('Grade description:', this.gradeDescription);
+      
+      this.successMessage = 'Ocena opisowa została zapisana (symulacja - brak endpointu).';
+      setTimeout(() => {
+        this.successMessage = '';
+      }, 3000);
+      
+      this.gradeModal.hide();
+      this.gradeDescription = '';
+      this.selectedGroup = null;
+    },
+    
     isThesisAccepted(group) {
       console.log('Checking thesis acceptance for group:', group.name, 'Status:', group.thesis_status);
       
