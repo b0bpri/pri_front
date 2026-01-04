@@ -184,6 +184,9 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+          <div class="alert alert-info mb-3">
+            <i class="icon-info"></i> <strong>Uwaga:</strong> Ocena opisowa nie jest widoczna dla studentów.
+          </div>
           <div class="mb-3">
             <label for="gradeDescription" class="form-label">Opis oceny:</label>
             <textarea
@@ -196,6 +199,9 @@
           </div>
         </div>
         <div class="modal-footer">
+          <p class="me-auto mb-0 grade-modal-message" :class="[gradeModalError ? 'error-message' : 'success-message', { 'invisible': !gradeModalMessage }]">
+            {{ gradeModalMessage || 'placeholder' }}
+          </p>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
           <button type="button" class="btn btn-primary" @click="saveGrade">Zapisz</button>
         </div>
@@ -227,7 +233,9 @@ export default {
       isPromoter: authStore.isPromoter,
       selectedGroup: null,
       gradeDescription: '',
-      gradeModal: null
+      gradeModal: null,
+      gradeModalMessage: '',
+      gradeModalError: false
     };
   },
   computed: {
@@ -323,6 +331,7 @@ export default {
             
             return {
               ...group,
+              thesis_id: response.data.id,
               thesis_status: response.data.approval_status || response.data.status || 'PENDING'
             };
           } catch (error) {
@@ -537,11 +546,34 @@ export default {
       modal.show();
     },
     
-    openGradeModal(group) {
+    async openGradeModal(group) {
       this.selectedGroup = group;
       this.gradeDescription = '';
+      this.gradeModalMessage = '';
+      this.gradeModalError = false;
       
-      // TODO Endpoint
+      // Get existing review if available
+      if (group.thesis_id) {
+        try {
+          console.log('Fetching review for thesis_id:', group.thesis_id);
+          const response = await axios.get(`/api/v1/thesis/${group.thesis_id}/review`);
+          console.log('Review response:', response.data);
+          if (response.data && response.data.review) {
+            this.gradeDescription = response.data.review;
+            console.log('Loaded review content:', this.gradeDescription);
+          } else {
+            console.log('No review in response');
+          }
+        } catch (error) {
+          if (error.response && error.response.status !== 404) {
+            console.error('Błąd podczas pobierania oceny opisowej:', error);
+          } else {
+            console.log('No review found (404)');
+          }
+        }
+      } else {
+        console.warn('No thesis_id for group:', group.name);
+      }
 
       if (!this.gradeModal) {
         this.gradeModal = new Modal(document.getElementById('gradeModal'));
@@ -555,25 +587,47 @@ export default {
       }
       
       if (!this.gradeDescription.trim()) {
-        this.errorMessage = 'Opis oceny nie może być pusty.';
+        this.gradeModalMessage = 'Opis oceny nie może być pusty.';
+        this.gradeModalError = true;
         setTimeout(() => {
-          this.errorMessage = '';
+          this.gradeModalMessage = '';
         }, 3000);
         return;
       }
       
-      // TODO Endpoint
-      console.log('Saving grade for group:', this.selectedGroup.name);
-      console.log('Grade description:', this.gradeDescription);
+      if (!this.selectedGroup.thesis_id) {
+        this.gradeModalMessage = 'Brak ID pracy dyplomowej.';
+        this.gradeModalError = true;
+        setTimeout(() => {
+          this.gradeModalMessage = '';
+        }, 3000);
+        return;
+      }
       
-      this.successMessage = 'Ocena opisowa została zapisana (symulacja - brak endpointu).';
-      setTimeout(() => {
-        this.successMessage = '';
-      }, 3000);
-      
-      this.gradeModal.hide();
-      this.gradeDescription = '';
-      this.selectedGroup = null;
+      try {
+        console.log('Saving review for thesis_id:', this.selectedGroup.thesis_id);
+        console.log('Review content:', this.gradeDescription);
+        
+        await axios.put(`/api/v1/thesis/${this.selectedGroup.thesis_id}/review`, {
+          review_content: this.gradeDescription
+        });
+        
+        console.log('Review saved successfully');
+        
+        this.gradeModalMessage = 'Ocena opisowa została zapisana.';
+        this.gradeModalError = false;
+        setTimeout(() => {
+          this.gradeModalMessage = '';
+        }, 3000);
+      } catch (error) {
+        console.error('Błąd podczas zapisywania oceny opisowej:', error);
+        console.error('Error response:', error.response?.data);
+        this.gradeModalMessage = 'Nie udało się zapisać oceny opisowej.';
+        this.gradeModalError = true;
+        setTimeout(() => {
+          this.gradeModalMessage = '';
+        }, 5000);
+      }
     },
     
     isThesisAccepted(group) {

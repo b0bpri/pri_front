@@ -17,6 +17,9 @@ document.head.appendChild(link)
 
 const notivue = createNotivue()
 
+// Configure axios to send cookies with requests
+axios.defaults.withCredentials = true;
+
 //JWT Interceprtor 
 axios.interceptors.request.use(
   (config) => {
