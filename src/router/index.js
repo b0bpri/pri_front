@@ -8,6 +8,7 @@ import Thesis from '@/views/Thesis.vue'
 import ThesisCopy from '@/views/ThesisCopy.vue'
 import StudentChapter from '@/components/StudentChapter.vue'
 import Timeline from '@/views/Timeline.vue'
+import NoGroup from '@/views/NoGroup.vue'
 
 
 const routes = [
@@ -15,6 +16,11 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
+  },
+  {
+    path: '/no-group',
+    name: 'NoGroup',
+    component: NoGroup,
   },
   {
     path: '/groups-panel',
@@ -73,6 +79,41 @@ const router = createRouter({
   routes,
 })
 
+// Helper function to get student's group
+const getStudentGroup = async (authStore) => {
+  try {
+    const axios = (await import('axios')).default;
+    const response = await axios.get('/api/v1/view/groups/all');
+    let groups = [];
+    if (response.data && Array.isArray(response.data.dtos)) {
+      groups = response.data.dtos;
+    } else if (response.data && Array.isArray(response.data)) {
+      groups = response.data;
+    }
+
+    return groups.find(group => 
+      group.students && Array.isArray(group.students) && 
+      group.students.some(student => student.id === authStore.userId)
+    );
+  } catch (error) {
+    console.error('[Router Guard] Error fetching student group:', error);
+    return null;
+  }
+};
+
+// Helper function to get thesis status
+const getThesisStatus = async (projectId) => {
+  try {
+    const axios = (await import('axios')).default;
+    const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${projectId}`);
+    const thesisData = thesisResponse.data;
+    return thesisData.approval_status || thesisData.status || 'PENDING';
+  } catch (error) {
+    console.warn('Could not fetch thesis status:', error);
+    return 'PENDING';
+  }
+};
+
 // Navigation protection based on user role
 router.beforeEach(async (to, from, next) => {
   const { default: authStore } = await import('@/stores/authStore');
@@ -86,47 +127,30 @@ router.beforeEach(async (to, from, next) => {
     target: to.name
   });
 
-  // If trying to access Home and already logged in, redirect
-  if (to.name === 'Home' && authStore.userId) {
-    console.log('[Router Guard] Already logged in, redirecting from Home');
-    if (authStore.isPromoter) {
-      next({ name: 'GroupsPanel' });
-    } else {
-      // For students, check thesis status and redirect appropriately
-      try {
-        const axios = (await import('axios')).default;
-        const response = await axios.get('/api/v1/view/groups/all');
-        let groups = [];
-        if (response.data && Array.isArray(response.data.dtos)) {
-          groups = response.data.dtos;
-        } else if (response.data && Array.isArray(response.data)) {
-          groups = response.data;
+  // Allow access to home page for everyone
+  if (to.name === 'Home') {
+    // If logged in and trying to access Home, redirect to appropriate page
+    if (authStore.userId) {
+      console.log('[Router Guard] Already logged in, redirecting from Home');
+      if (authStore.isPromoter) {
+        next({ name: 'GroupsPanel' });
+        return;
+      } else {
+        // For students, check if they belong to a group
+        const studentGroup = await getStudentGroup(authStore);
+        
+        if (!studentGroup) {
+          console.log('[Router Guard] Student has no group, redirecting to NoGroup');
+          next({ name: 'NoGroup' });
+          return;
         }
 
-        const studentGroup = groups.find(group => 
-          group.students && Array.isArray(group.students) && 
-          group.students.some(student => student.id === authStore.userId)
-        );
-
-        if (studentGroup && studentGroup.project_id) {
-          // Check thesis status
-          let groupWithThesisStatus = { ...studentGroup };
-          
-          if (!studentGroup.thesis_status && !studentGroup.isThesisAccepted && !studentGroup.thesisAccepted) {
-            try {
-              const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${studentGroup.project_id}`);
-              const thesisData = thesisResponse.data;
-              groupWithThesisStatus.thesis_status = thesisData.approval_status || 'PENDING';
-            } catch (thesisError) {
-              console.warn('Could not fetch thesis status:', thesisError);
-              groupWithThesisStatus.thesis_status = 'PENDING';
-            }
-          }
-
-          const isThesisAccepted = groupWithThesisStatus.thesis_status === 'APPROVED';
+        // Student has a group, check thesis status and redirect appropriately
+        if (studentGroup.project_id) {
+          const thesisStatus = await getThesisStatus(studentGroup.project_id);
+          const isThesisAccepted = thesisStatus === 'APPROVED';
 
           if (isThesisAccepted) {
-            // If thesis is accepted, redirect to ChaptersPreview
             console.log('[Router Guard] Student with accepted thesis, redirecting to ChaptersPreview');
             next({ 
               name: 'ChaptersPreview', 
@@ -136,7 +160,6 @@ router.beforeEach(async (to, from, next) => {
               }
             });
           } else {
-            // If thesis is not accepted, redirect to Thesis view
             console.log('[Router Guard] Student with non-accepted thesis, redirecting to Thesis');
             next({ 
               name: 'Thesis', 
@@ -147,215 +170,126 @@ router.beforeEach(async (to, from, next) => {
             });
           }
           return;
+        } else {
+          // Student has group but no project_id - redirect to NoGroup
+          next({ name: 'NoGroup' });
+          return;
         }
-      } catch (error) {
-        console.error('[Router Guard] Error checking student status:', error);
-        // Fallback to Thesis view on error
-        next({ name: 'GroupsPanel' });
-        return;
       }
+    } else {
+      // Not logged in, allow access to Home
+      next();
+      return;
     }
-    return;
   }
 
-  // Allow access to home page for everyone
-  if (to.name === 'Home') {
+  // Allow access to NoGroup page for logged in users
+  if (to.name === 'NoGroup' && authStore.userId) {
     next();
     return;
   }
-  
+
   // Check if user is logged in
   if (!authStore.userId) {
     console.log('[Router Guard] Not logged in, redirecting to Home');
     next({ name: 'Home' });
     return;
   }
-  
+
   // Allow promoters to access all routes
   if (authStore.isPromoter) {
     console.log('[Router Guard] Promoter access granted');
     next();
     return;
   }
+
+  // For students - check if they belong to a group before allowing any access
+  const studentGroup = await getStudentGroup(authStore);
+  
+  if (!studentGroup || !studentGroup.project_id) {
+    console.log('[Router Guard] Student has no group, blocking access to:', to.name);
+    next({ name: 'NoGroup' });
+    return;
+  }
+
+  console.log('[Router Guard] Student belongs to group:', studentGroup.name);
   
   // Restrict ChecklistMaker to promoters only
   if (to.meta?.requiresPromoter && !authStore.isPromoter) {
     console.log('[Router Guard] Route requires promoter, access denied');
-    next({ name: 'Home' });
+    next({ name: 'NoGroup' });
     return;
   }
   
   // Block students from accessing GroupsPanel directly
-  if (to.name === 'GroupsPanel' && !authStore.isPromoter) {
-    console.log('[Router Guard] Student attempting to access GroupsPanel, checking thesis status for redirect');
-    try {
-      const axios = (await import('axios')).default;
-      const response = await axios.get('/api/v1/view/groups/all');
-      let groups = [];
-      if (response.data && Array.isArray(response.data.dtos)) {
-        groups = response.data.dtos;
-      } else if (response.data && Array.isArray(response.data)) {
-        groups = response.data;
-      }
+  if (to.name === 'GroupsPanel') {
+    console.log('[Router Guard] Student attempting to access GroupsPanel, redirecting based on thesis status');
+    
+    const thesisStatus = await getThesisStatus(studentGroup.project_id);
+    const isThesisAccepted = thesisStatus === 'APPROVED';
 
-      const studentGroup = groups.find(group => 
-        group.students && Array.isArray(group.students) && 
-        group.students.some(student => student.id === authStore.userId)
-      );
-
-      if (studentGroup && studentGroup.project_id) {
-        let groupWithThesisStatus = { ...studentGroup };
-        
-        if (!studentGroup.thesis_status && !studentGroup.isThesisAccepted && !studentGroup.thesisAccepted) {
-          try {
-            const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${studentGroup.project_id}`);
-            const thesisData = thesisResponse.data;
-            groupWithThesisStatus.thesis_status = thesisData.approval_status || thesisData.status || 'PENDING';
-          } catch (thesisError) {
-            console.warn('Could not fetch thesis status:', thesisError);
-            groupWithThesisStatus.thesis_status = 'PENDING';
-          }
+    if (isThesisAccepted) {
+      console.log('[Router Guard] Redirecting to ChaptersPreview');
+      next({ 
+        name: 'ChaptersPreview', 
+        params: { id: studentGroup.project_id.toString() },
+        query: { 
+          name: studentGroup.name || 'Unknown Group'
         }
-
-        const isThesisAccepted = groupWithThesisStatus.thesis_status === 'APPROVED';
-
-        if (isThesisAccepted) {
-          console.log('[Router Guard] Student trying to access GroupsPanel with accepted thesis, redirecting to ChaptersPreview');
-          next({ 
-            name: 'ChaptersPreview', 
-            params: { id: studentGroup.project_id.toString() },
-            query: { 
-              name: studentGroup.name || 'Unknown Group'
-            }
-          });
-        } else {
-          console.log('[Router Guard] Student trying to access GroupsPanel with non-accepted thesis, redirecting to Thesis');
-          next({ 
-            name: 'Thesis', 
-            params: { groupId: studentGroup.project_id.toString() },
-            query: { 
-              name: studentGroup.name || 'Unknown Group'
-            }
-          });
+      });
+    } else {
+      console.log('[Router Guard] Redirecting to Thesis');
+      next({ 
+        name: 'Thesis', 
+        params: { groupId: studentGroup.project_id.toString() },
+        query: { 
+          name: studentGroup.name || 'Unknown Group'
         }
-        return;
-      }
-    } catch (error) {
-      console.error('[Router Guard] Error checking student status for GroupsPanel:', error);
-      next({ name: 'Home' });
-      return;
+      });
     }
+    return;
   }
   
   // Check for restricted views for students - Thesis access
-  if (to.name === 'Thesis' && !authStore.isPromoter) {
-    console.log('[Router Guard] Student accessing Thesis, checking acceptance');
-    try {
-      // Check if student's thesis is already accepted
-      const axios = (await import('axios')).default;
-      
-      // Get student's group
-      const response = await axios.get('/api/v1/view/groups/all');
-      let groups = [];
-      if (response.data && Array.isArray(response.data.dtos)) {
-        groups = response.data.dtos;
-      } else if (response.data && Array.isArray(response.data)) {
-        groups = response.data;
-      }
+  if (to.name === 'Thesis') {
+    console.log('[Router Guard] Student accessing Thesis, checking if thesis is accepted');
+    
+    const thesisStatus = await getThesisStatus(studentGroup.project_id);
+    const isThesisAccepted = thesisStatus === 'APPROVED';
 
-      const studentGroup = groups.find(group => 
-        group.students && Array.isArray(group.students) && 
-        group.students.some(student => student.id === authStore.userId)
-      );
-
-      if (studentGroup && studentGroup.project_id) {
-        // Check thesis status
-        let groupWithThesisStatus = { ...studentGroup };
-        
-        if (!studentGroup.thesis_status && !studentGroup.isThesisAccepted && !studentGroup.thesisAccepted) {
-          try {
-            const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${studentGroup.project_id}`);
-            const thesisData = thesisResponse.data;
-            groupWithThesisStatus.thesis_status = thesisData.approval_status || thesisData.status || 'PENDING';
-          } catch (thesisError) {
-            console.warn('Could not fetch thesis status:', thesisError);
-            groupWithThesisStatus.thesis_status = 'PENDING';
-          }
+    if (isThesisAccepted) {
+      console.log('[Router Guard] Thesis accepted, redirecting to ChaptersPreview');
+      next({ 
+        name: 'ChaptersPreview', 
+        params: { id: studentGroup.project_id.toString() },
+        query: { 
+          name: studentGroup.name || 'Unknown Group'
         }
-
-        // Use the same logic as GroupsPanel for checking thesis acceptance
-        const isThesisAccepted = groupWithThesisStatus.thesis_status === 'APPROVED';
-
-        if (isThesisAccepted) {
-          // Redirect to ChaptersPreview if thesis is accepted and they're trying to access Thesis
-          console.log('Student with accepted thesis attempting to access Thesis view, redirecting to ChaptersPreview');
-          next({ 
-            name: 'ChaptersPreview', 
-            params: { id: studentGroup.project_id.toString() },
-            query: { 
-              name: studentGroup.name || 'Unknown Group'
-            }
-          });
-          return;
-        }
-        // If thesis is not accepted, allow access to Thesis view
-      }
-    } catch (error) {
-      console.error('Error checking thesis status in route guard:', error);
+      });
+      return;
     }
+    // If thesis is not accepted, allow access to Thesis view
   }
   
   // Block students from accessing ChaptersPreview if thesis is not accepted
-  if (to.name === 'ChaptersPreview' && !authStore.isPromoter) {
-    console.log('[Router Guard] Student accessing ChaptersPreview, checking acceptance');
-    try {
-      const axios = (await import('axios')).default;
-      const response = await axios.get('/api/v1/view/groups/all');
-      let groups = [];
-      if (response.data && Array.isArray(response.data.dtos)) {
-        groups = response.data.dtos;
-      } else if (response.data && Array.isArray(response.data)) {
-        groups = response.data;
-      }
+  if (to.name === 'ChaptersPreview') {
+    console.log('[Router Guard] Student accessing ChaptersPreview, checking if thesis is accepted');
+    
+    const thesisStatus = await getThesisStatus(studentGroup.project_id);
+    const isThesisAccepted = thesisStatus === 'APPROVED';
 
-      const studentGroup = groups.find(group => 
-        group.students && Array.isArray(group.students) && 
-        group.students.some(student => student.id === authStore.userId)
-      );
-
-      if (studentGroup && studentGroup.project_id) {
-        let groupWithThesisStatus = { ...studentGroup };
-        
-        if (!studentGroup.thesis_status && !studentGroup.isThesisAccepted && !studentGroup.thesisAccepted) {
-          try {
-            const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${studentGroup.project_id}`);
-            const thesisData = thesisResponse.data;
-            groupWithThesisStatus.thesis_status = thesisData.approval_status || thesisData.status || 'PENDING';
-          } catch (thesisError) {
-            console.warn('Could not fetch thesis status:', thesisError);
-            groupWithThesisStatus.thesis_status = 'PENDING';
-          }
+    if (!isThesisAccepted) {
+      console.log('[Router Guard] Thesis not accepted, redirecting to Thesis view');
+      next({ 
+        name: 'Thesis', 
+        params: { groupId: studentGroup.project_id.toString() },
+        query: { 
+          name: studentGroup.name || 'Unknown Group'
         }
-
-        const isThesisAccepted = groupWithThesisStatus.thesis_status === 'APPROVED';
-
-        if (!isThesisAccepted) {
-          // For students with non-accepted thesis, redirect to Thesis view
-          console.log('Student with non-accepted thesis attempting to access ChaptersPreview, redirecting to Thesis view');
-          next({ 
-            name: 'Thesis', 
-            params: { groupId: studentGroup.project_id.toString() },
-            query: { 
-              name: studentGroup.name || 'Unknown Group'
-            }
-          });
-          return;
-        }
-        // If thesis is accepted, allow access to ChaptersPreview
-      }
-    } catch (error) {
-      console.error('Error checking ChaptersPreview access:', error);
+      });
+      return;
     }
+    // If thesis is accepted, allow access to ChaptersPreview
   }
   
   // Default allow

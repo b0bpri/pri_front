@@ -67,6 +67,7 @@
 <script>
 import authStore from '/src/stores/authStore.js';
 import axios from 'axios';
+import '../css/StudentChapter.css';
 
 export default {
   name: 'StudentChapter',
@@ -328,60 +329,3 @@ export default {
 };
 </script>
 
-<style scoped>
-.student-chapter {
-  padding: 1rem;
-}
-.form-group {
-  margin-bottom: 1.5rem;
-}
-.form-control {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-textarea.form-control {
-  min-height: 100px;
-}
-.btn {
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-right: 0.5rem;
-}
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-.btn-success {
-  background-color: #28a745;
-  color: white;
-}
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-  margin-left: 1rem;
-}
-.success-message {
-  color: #28a745;
-  margin-top: 1rem;
-}
-.error-message {
-  color: #dc3545;
-  margin-top: 1rem;
-}
-.accepted-message {
-  color: #007bff;
-  margin-top: 1rem;
-  font-weight: bold;
-}
-.rejected-message {
-  color: #dc3545;
-  margin-top: 1rem;
-  font-weight: bold;
-}
-</style>

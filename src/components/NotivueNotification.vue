@@ -7,6 +7,7 @@ import {
   push,
   useNotivue
 } from 'notivue'
+import '../css/NotivueNotification.css';
 
 //Defines global configuration of notifications
 const config = useNotivue()
@@ -68,48 +69,3 @@ export function pushNotification(notification_text, notification_type) {
   }
 }
 </script>
-
-<style scoped>
-@import 'notivue/notifications.css';
-@import 'notivue/animations.css';
-.notification {
-  --notivue-padding: 12px 16px;
-  --notivue-spacing: 10px;
-  --notivue-width: 350px;
-  --notivue-border-radius: 8px;
-  --notivue-font-size: 14px;
-  --notivue-line-height: 1.4;
-  --notivue-duration: 5000ms;
-  margin-top: 60px;  /* This will push the notifications down */
-  margin-left: 20px; /* This will push the notifications to the right */
-}
-
-.notification-content {
-  padding: 8px 0;
-}
-
-.notification-message {
-  color: #333;
-  font-weight: 500;
-}
-
-.notification[data-type="success"] {
-  background-color: #f0fdf4;
-  border-left: 4px solid #10b981;
-}
-
-.notification[data-type="error"] {
-  background-color: #fef2f2;
-  border-left: 4px solid #ef4444;
-}
-
-.notification[data-type="warning"] {
-  background-color: #fffbeb;
-  border-left: 4px solid #f59e0b;
-}
-
-.notification[data-type="info"] {
-  background-color: #eff6ff;
-  border-left: 4px solid #3b82f6;
-}
-</style>

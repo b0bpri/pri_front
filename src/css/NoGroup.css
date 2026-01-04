@@ -1,0 +1,98 @@
+.no-group-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  padding: 20px;
+}
+
+.no-group-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  padding: 48px;
+  max-width: 500px;
+  text-align: center;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.no-group-card h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 16px;
+}
+
+.no-group-card .message {
+  font-size: 16px;
+  color: #4a5568;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.no-group-card .submessage {
+  font-size: 14px;
+  color: #718096;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+.info-box {
+  background: #e7f3ff;
+  border-left: 4px solid #007bff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+}
+
+.info-box svg {
+  flex-shrink: 0;
+  color: #007bff;
+  margin-top: 2px;
+}
+
+.info-box span {
+  font-size: 14px;
+  color: #2d3748;
+  line-height: 1.5;
+}
+
+.logout-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.logout-button:hover {
+  background: #0056b3;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.logout-button:active {
+  background: #004085;
+  transform: translateY(1px);
+}
