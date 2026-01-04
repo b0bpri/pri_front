@@ -107,7 +107,8 @@
 
 .groups-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.875rem;
 }
 
@@ -145,9 +146,10 @@
 }
 
 .groups-table td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #f3f4f6;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
     vertical-align: top;
+    background-color: white;
 }
 
 .group-row {
@@ -156,6 +158,14 @@
 
 .group-row:hover {
     background-color: #f9fafb;
+}
+
+.group-row:hover td {
+    background-color: #f9fafb;
+}
+
+.group-row + .group-row td {
+    border-top: 1px solid #e5e7eb;
 }
 
 .group-name {
@@ -222,12 +232,13 @@
   display: flex;
   gap: 0.5rem;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .groups-container .actions-cell {
   text-align: left;
-  vertical-align: middle;
+  vertical-align: top !important;
+  padding-top: 0.3rem !important;
 }
 
 .groups-container .action-btn.secondary {
@@ -248,10 +259,9 @@
 }
 
 .groups-table .actions-cell {
-    border-bottom: none;
-    padding: 0.75rem;
+    padding: 0.3rem 0.75rem 0.75rem 0.75rem;
     text-align: left;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .empty-state {
@@ -370,7 +380,8 @@
 .disabled-btn:hover {
     background-color: #a0aec0;
 }
-/* Fix button alignment and remove unwanted styling */
+
+
 .groups-container .groups-table td {
     text-align: left !important;
 }
@@ -378,42 +389,28 @@
 .groups-container .groups-table .actions-cell {
     text-align: left !important;
     border-top: none !important;
-    border-bottom: none !important;
     border-left: none !important;
     border-right: none !important;
 }
 
 .groups-container .groups-table tr .actions-cell {
-    border: none !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
 }
 
-/* Remove borders from rows containing action buttons */
-.groups-container .groups-table tr:has(.actions-cell) td {
-    border-bottom: none !important;
-}
 
-/* Fallback for browsers that don't support :has() */
-.groups-container .groups-table tr td.actions-cell,
-.groups-container .groups-table tr td.actions-cell ~ td,
-.groups-container .groups-table tr td:has(.action-buttons) {
-    border-bottom: none !important;
-}
 
-/* More aggressive border removal for action cells */
-.groups-container .groups-table tbody tr td:last-child {
-    border-bottom: none !important;
-}
 
-/* Additional border removal for action buttons */
+
 .groups-container .action-buttons {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
 }
 
-/* Remove any potential background lines */
+
 .groups-container .action-buttons::before,
 .groups-container .action-buttons::after {
   display: none !important;
 }
-
