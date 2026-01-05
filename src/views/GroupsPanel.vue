@@ -1,3 +1,11 @@
+<script setup>
+import { ref } from 'vue';
+import { VueDatePicker } from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
+
+</script>
+
+
 <template>
   <div class="groups-container">
     <div class="page-header">
@@ -52,7 +60,10 @@
               <span class="sort-indicator" :class="getSortClass('supervisor')"></span>
             </th>
             <th class="status-align">Status pracy</th>
-            <th class="status-align">Data Obrony</th>
+            <th class="sortable" @click="sortBy('defenseDate')">
+              Data Obrony
+              <span class="sort-indicator" :class="getSortClass('defenseDate')"></span>
+            </th>
             <th>Akcje</th>
           </tr>
         </thead>
@@ -81,9 +92,7 @@
               </span>
             </td>
             <td class="status-cell">
-              <span class="status-badge" :class="getThesisStatusClass(group)">
-                {{ getThesisStatusText(group) }}
-              </span>
+              <span class="supervisor-name">{{group.defence_date || 'Nieprzypisana' }}</span>
             </td>
             <td class="actions-cell">
               <div class="action-buttons">
@@ -121,7 +130,7 @@
 
                 <button v-if="isThesisAccepted(group) && (isUserInGroup(group) || isPromoter)"
                         class="action-btn primary"
-                        @click.stop="setThesisDefenseDate(group)"
+                        @click.stop="showThesisDefenseModal(group)"
                         :disabled="!isGroupSupervisor(group) && isPromoter"
                         :class="{'disabled-btn': !isGroupSupervisor(group) && isPromoter}">
                   <i class="icon-timeline"></i>
@@ -154,22 +163,19 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Ustal termin obrony</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Wybierz datę:</label>
-            <input
-                type="date"
-                class="form-control"
-                min="2025-11-08"
-                value="2025-11-08"
-            >
+            <VueDatePicker
+                v-model="date"
+                :min-date="new Date()"
+                :formats="{ input: 'dd.MM.yyyy - HH:mm', preview: 'dd.MM.yyyy - HH:mm' }"/>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
-          <button type="button" class="btn btn-primary">Zapisz</button>
+          <button type="button" class="btn btn-primary" @click="saveDefenseDate(selectedGroup)">Zapisz</button>
         </div>
       </div>
     </div>
@@ -236,6 +242,7 @@ export default {
       gradeModal: null,
       gradeModalMessage: '',
       gradeModalError: false
+      date: null
     };
   },
   computed: {
@@ -299,6 +306,7 @@ export default {
           processedGroups = [];
         }
         this.groups = await this.fetchThesisStatuses(processedGroups);
+        //this.groups = await this.fetchDefenceDates(processedGroups);
         if (!this.isPromoter && this.userId) {
           this.extractUserGroupsFromData();
         }
@@ -310,6 +318,31 @@ export default {
         this.groups = [];
       } finally {
         this.loading = false;
+      }
+    },
+    async fetchDefenceDates(groups){
+      try {
+        const groupsWithDefenceDates = await Promise.all(groups.map(async (group) => {
+          if (!group.project_id) {
+            return group;
+          }
+        }));
+        try {
+          const response = await axios.get(`/api/v1/chapter/getDefence/${group.project_id}`);
+
+          console.log(`Defence date for group ${group.name}:`, response.data);
+
+          return {
+            ...group,
+            defence_date: response.data.date || 'PENDING'
+          };
+        }
+        catch (error) {
+          console.error('Error fetching dates:', error);
+        }
+      }
+      catch(error){
+        console.error('Error fetching groups:', error);
       }
     },
     
@@ -540,7 +573,7 @@ export default {
     },
 
 
-    setThesisDefenseDate(group) {
+    showThesisDefenseModal(group) {
       this.selectedGroup = group;
       const modal = new Modal(document.getElementById('defenseDateModal'));
       modal.show();
@@ -630,6 +663,55 @@ export default {
       }
     },
     
+    async saveDefenseDate(group) {
+      console.log('Saving defense date for group:', group.project_id);
+
+      if (!this.isPromoter || !group || !group.project_id) {
+        return;
+      }
+
+      // Check if the current promoter is the supervisor of this group
+      if (!this.isGroupSupervisor(group)) {
+        console.warn('Promoter attempted to access thesis details of a group they are not supervising:', group.project_id);
+        this.errorMessage = 'Możesz edytować tylko grupy, których jesteś promotorem.';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+        return;
+      }
+      //adjust date format
+      const adjustedDate = new Date(this.date);
+      if (this.date) {
+        //May be off by an hour (timezone)
+        adjustedDate.setHours(adjustedDate.getHours() + 1);
+        console.log('Formatted date:', adjustedDate.toISOString());
+      }
+      try {
+        const url = `/api/v1/chapter/addDefence`;
+        console.log('Request URL:', url);
+        const response = await axios.post(url, {
+          chapter_id: group.project_id,
+          date: adjustedDate.toISOString(),
+          comment: 'test'
+        });
+        console.log('Response data:', response.data);
+        console.log('FormData contains:', {
+          chapter_id: group.project_id,
+          date: adjustedDate.toISOString(),
+          comment: 'test'
+        });
+        // Refresh the groups list to show the updated defense date
+        await this.fetchGroups();
+
+      } catch (error) {
+        console.error('Error saving defense date:', error);
+        this.errorMessage = 'Wystąpił błąd podczas zapisywania daty obrony: ' +
+            (error.response?.data?.message || error.message);
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+      }
+    },
     isThesisAccepted(group) {
       console.log('Checking thesis acceptance for group:', group.name, 'Status:', group.thesis_status);
       
