@@ -8,6 +8,7 @@ import authStore from '/src/stores/authStore.js';
 import ToggleTextBox from '@/components/ToggleTextBox.vue';
 
 const router = useRouter();
+const dateFlag = ref(null); //flag to determine which year to display
 
 const props = defineProps({
   thesisId: {
@@ -108,6 +109,13 @@ function processDataEntries() {
             status = 'status-student-pending';
           }
         }
+        if (!dateFlag.value){
+          dateFlag.value = Date.parse(version.upload_date_time);
+          //console.log("Dateflag is", dateFlag.value);
+          //console.log("Year is", new Date(dateFlag.value).getFullYear());
+          //console.log("Month is", new Date(dateFlag.value).getMonth());
+        }
+
         pushItem(
             items,
             version.id,
@@ -199,7 +207,27 @@ function goBack() {
   router.push('/groups-panel');
 }
 
+const timelineRange = computed(() => {
+  const currentYear = new Date().getFullYear();
+  let beginningDate = new Date(currentYear - 1, 6, 1).getTime(); // July 1st of previous year
+  let endingDate = new Date(currentYear + 1, 5, 30).getTime(); // June 30th of next year
 
+  if (dateFlag.value) {
+    const entryYear = new Date(dateFlag.value).getFullYear();
+    const entryMonth = new Date(dateFlag.value).getMonth();
+
+    if (entryMonth < 4) {
+      beginningDate = new Date(entryYear - 1, 6, 1).getTime();
+      endingDate = new Date(entryYear, 1, 28).getTime();
+    } else {
+      beginningDate = new Date(entryYear, 6, 1).getTime();
+      endingDate = new Date(entryYear + 1, 1, 28).getTime();
+    }
+  }
+  //console.log('Beginning date is: ', beginningDate);
+  //console.log('Ending date is: ', endingDate);
+  return [beginningDate, endingDate];
+});
 /* discarded functions kept for possible future use
 //Discarded because I made adding items start with the most recent entry rather that the oldest. This made checking the status of future versions obsolete.
 function assignStatus(supervisor_id, version_uploader_id, version_entry_id, version_upload_date) {
@@ -252,8 +280,8 @@ onMounted(async () => {
           class="timeline"
           :groups="groups"
           :items="items"
-          :viewportMin="new Date(`${new Date().getFullYear()}-01-01`).getTime()"
-          :viewportMax="new Date(`${new Date().getFullYear()}-12-31`).getTime()"
+          :viewportMin="timelineRange[0]"
+          :viewportMax="timelineRange[1]"
           :markers="markers"
           @mousemoveTimeline="onMousemoveTimeline"
           @mouseleaveTimeline="onMouseleaveTimeline"
@@ -278,7 +306,6 @@ onMounted(async () => {
       <p><strong>Author:</strong> {{ matched_json_chapter.author.user_data_first_name }} {{ matched_json_chapter.author.user_data_last_name }}</p>
       <p><strong>Email:</strong> {{ matched_json_chapter.author.user_data_email }}</p>
 
-        <p><strong>Version Details:</strong></p>
         <div>
           <p><strong>Uploaded on:</strong> {{ new Date(new Date(matched_json_version.upload_date_time).getTime() + 7200000).toISOString().replace('T', ' ').split('.')[0]  }}</p>
           <p><strong>Uploaded by:</strong> {{ matched_json_version.uploader.user_data_first_name }} {{ matched_json_version.uploader.user_data_last_name }}</p>

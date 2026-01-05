@@ -6,6 +6,11 @@
         <button v-if="isPromoter" class="back-btn" @click="goBack">
           <i class="icon-back"></i> Powrót
         </button>
+        <div style="position: absolute; top: 1rem; right: 1rem; z-index: 1000; display: flex; gap: 0.5rem;">
+          <ToggleTextBox
+              content="This is what the page is for."
+          />
+        </div>
       </div>
 
       <div class="subheader-container"> <!-- Contains the thesis title -->
@@ -25,9 +30,14 @@
       </div>
 
       <!-- Upload -->
-      <div class="upload-section">
-        <h3>Prześlij materiały</h3>
 
+      <div class="upload-section" style="position: relative;">
+        <h3>Prześlij materiały</h3>
+        <div style="position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.5rem;">
+          <ToggleTextBox
+              content="Information about sending files."
+          />
+        </div>
         <!-- Information message for promoters who are not supervisors -->
         <div v-if="isPromoter && !isSupervisor" class="warning-message">
           <p>Nie jesteś promotorem tej grupy. Możesz przeglądać pliki, ale nie możesz przesyłać nowych plików ani komentować.</p>
@@ -107,7 +117,14 @@
           <th>Wysłane przez</th>
           <th>Nazwa pliku</th>
           <th>Data przesłania</th>
-          <th>Akcje</th>
+          <th>Akcje
+            <div style="position: relative; margin-top: -1.8rem; font-weight: normal;">
+              <ToggleTextBox
+                  content="Information about the table and its actions."
+
+              />
+            </div>
+          </th>
         </tr>
         </thead>
         <tbody>
@@ -349,9 +366,11 @@
 import axios from 'axios';
 import authStore from '/src/stores/authStore.js';
 import { pushNotification, pushPromiseNotification } from '/src/components/NotivueNotification.vue';
+import ToggleTextBox from "@/components/ToggleTextBox.vue";
 
 export default {
   name: 'ChaptersPreview',
+  components: {ToggleTextBox},
   data() {
     return {
       isPromoter: authStore.isPromoter,
