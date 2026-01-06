@@ -241,7 +241,7 @@ export default {
       gradeDescription: '',
       gradeModal: null,
       gradeModalMessage: '',
-      gradeModalError: false
+      gradeModalError: false,
       date: null
     };
   },
