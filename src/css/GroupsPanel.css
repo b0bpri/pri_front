@@ -232,6 +232,19 @@
     content: "📝";
 }
 
+.icon-checklist::before {
+    content: "✅";
+}
+
+.groups-container .action-btn.checklist-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.groups-container .action-btn.checklist-btn:hover {
+    background-color: #218838;
+}
+
 .groups-container .action-buttons {
   display: flex;
   gap: 0.5rem;
@@ -260,6 +273,14 @@
 
 .groups-container .action-btn.copy-btn:hover {
     background-color: #138496;
+}
+
+.groups-container .action-btn.secondary.checklist-btn {
+    background-color: #28a745;
+}
+
+.groups-container .action-btn.secondary.checklist-btn:hover {
+    background-color: #218838;
 }
 
 .groups-table .actions-cell {

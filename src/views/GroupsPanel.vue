@@ -144,6 +144,14 @@ import '@vuepic/vue-datepicker/dist/main.css';
                   Dodaj ocenę opisową
                 </button>
 
+                <button v-if="isPromoter && isThesisAccepted(group) && isGroupSupervisor(group)"
+                        class="action-btn secondary checklist-btn"
+                        @click.stop="viewThesisChecklist(group)"
+                        title="Checklista dla całej pracy">
+                  <i class="icon-checklist"></i>
+                  Checklista
+                </button>
+
               </div>
             </td>
           </tr>
@@ -577,6 +585,36 @@ export default {
       this.selectedGroup = group;
       const modal = new Modal(document.getElementById('defenseDateModal'));
       modal.show();
+    },
+
+    viewThesisChecklist(group) {
+      if (!group || !group.project_id) {
+        console.error('Cannot view thesis checklist: Invalid project_id', group);
+        this.errorMessage = 'Nie można otworzyć checklisty - brak ID projektu.';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+        return;
+      }
+
+      if (!this.isPromoter || !this.isGroupSupervisor(group)) {
+        console.warn('Non-supervisor attempted to access thesis checklist:', group.project_id);
+        this.errorMessage = 'Tylko promotor tej grupy może wyświetlić checklistę dla całej pracy.';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+        return;
+      }
+
+      console.log(`Navigating to thesis checklist for project ID: ${group.project_id}`);
+      
+      // Używamy specjalnego identyfikatora dla checklisty całej pracy
+      // Backend będzie musiał obsłużyć ten przypadek
+      this.$router.push({
+        name: 'FileChecklist',
+        params: { chapterVersionId: `thesis-${group.project_id}` },
+        query: { type: 'thesis', projectId: group.project_id }
+      });
     },
     
     async openGradeModal(group) {

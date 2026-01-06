@@ -483,3 +483,32 @@
     border: 1px solid #f5c6cb;
     border-radius: 0.25rem;
 }
+
+.thesis-checklist-btn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.thesis-checklist-btn:hover {
+    background-color: #218838;
+}
+
+.icon-checklist::before {
+    content: "✓";
+    font-size: 1.2rem;
+    font-weight: bold;
+}

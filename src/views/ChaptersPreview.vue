@@ -13,11 +13,14 @@
         </div>
       </div>
 
-      <div class="subheader-container"> <!-- Contains the thesis title -->
+      <div class="subheader-container" style="position: relative;"> <!-- Contains the thesis title -->
         <h3 class="subtitle">Tytuł pracy: {{ thesisTitle }}</h3>
         <h6 class="subtitle">Tytuł &#127468;&#127463: {{ thesisTitleEng }}</h6>
         <h3 v-if="chapterTitle" class="subtitle">Tytuł chapteru: {{ chapterTitle }}</h3>
         <h6 v-if="chapterTitleEng" class="subtitle">Tytuł &#127468;&#127463: {{ chapterTitleEng }}</h6>
+        <button class="thesis-checklist-btn" @click="goToThesisChecklist" title="Checklista dla całej pracy">
+          <i class="icon-checklist"></i> Checklista dla całej pracy
+        </button>
       </div>
 
       <!-- Dropdown: Student's list for promoter -->
@@ -1212,6 +1215,22 @@ export default {
       this.$router.push({
         name: 'FileChecklist',
         params: { chapterVersionId: file.chapterVersionId }
+      });
+    },
+
+    goToThesisChecklist() {
+      if (!this.projectId) {
+        console.error('No project ID available');
+        this.errorMessage = 'Nie można otworzyć checklisty - brak ID projektu.';
+        return;
+      }
+
+      console.log(`Navigating to thesis checklist for project ID: ${this.projectId}`);
+      //TODO
+      this.$router.push({
+        name: 'FileChecklist',
+        params: { chapterVersionId: `thesis-${this.projectId}` },
+        query: { type: 'thesis', projectId: this.projectId }
       });
     },
 
