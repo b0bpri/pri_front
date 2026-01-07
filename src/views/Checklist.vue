@@ -16,10 +16,7 @@
             
             <div v-else-if="hasChecklistItems" class="checklist-content">
                 <div class="checklist-summary">
-                    <p class="total-points">Liczba punktów: {{ calculateTotalPoints() }}</p>
-                    <p class="checklist-status" :class="{ 'passed': checklist.isPassed }">
-                        Status: {{ checklist.isPassed ? 'Zaliczono' : 'Niezaliczono' }}
-                    </p>
+                    <p class="total-points">Punkty: {{ calculateTotalPoints() }}/{{ getChecklistItems().length }}</p>
                 </div>
                 <div v-for="(item, index) in getChecklistItems()" :key="index" class="checklist-item">
                     <input 
@@ -258,14 +255,12 @@ export default {
         calculateTotalPoints() {
             const items = this.getChecklistItems();
             if (!items || items.length === 0) {
-                console.log('No checklist items to calculate points');
                 return 0;
             }
             const totalPoints = items.reduce((total, question) => {
                 return total + (question.points || 0);
             }, 0);
             
-            console.log('Total points calculated:', totalPoints, 'from', items.length, 'items');
             return totalPoints;
         },
 
