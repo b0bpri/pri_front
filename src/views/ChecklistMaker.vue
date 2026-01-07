@@ -26,14 +26,32 @@
           <h3>Typ szablonu checklist</h3>
           <div class="template-type-selector">
             <label class="type-option" :class="{ 'active': templateType === 'chapter' }">
-              <input type="radio" v-model="templateType" value="chapter">
+              <input type="radio" v-model="templateType" value="chapter" @change="loadExistingTemplate">
               Szablon dla rozdziałów
             </label>
             <label class="type-option" :class="{ 'active': templateType === 'thesis' }">
-              <input type="radio" v-model="templateType" value="thesis">
+              <input type="radio" v-model="templateType" value="thesis" @change="loadExistingTemplate">
               Szablon dla całej pracy
             </label>
           </div>
+        </div>
+
+        <!-- Existing template display -->
+        <div v-if="existingTemplate.length > 0" class="existing-template-section">
+          <h3>Aktualny szablon</h3>
+          <div class="existing-template-list">
+            <div 
+              v-for="(item, index) in existingTemplate" 
+              :key="index"
+              class="existing-template-item"
+            >
+              <span class="template-number">{{ index + 1 }}.</span>
+              <span class="template-text">{{ item }}</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary" @click="loadTemplateToEditor">
+            Załaduj do edycji
+          </button>
         </div>
 
         <!-- Questions section -->
@@ -184,6 +202,7 @@ export default {
       
       // Template data
       templateType: 'chapter', // 'thesis' or 'chapter'
+      existingTemplate: [], // Existing template from API
       
       // Questions data
       questions: [],
@@ -209,18 +228,55 @@ export default {
   },
   
   created() {
-    this.$nextTick(() => {
+    this.$nextTick(async () => {
       // Check if user is promoter
       if (!this.isPromoter) {
         this.$router.push({ name: 'Home' });
         return;
       }
       
+      // Load existing template
+      await this.loadExistingTemplate();
+      
       this.loading = false;
     });
   },
   
   methods: {
+    async loadExistingTemplate() {
+      try {
+        const endpoint = this.templateType === 'thesis' 
+          ? '/api/v1/view/checklistTemplates/thesis/'
+          : '/api/v1/view/checklistTemplates/chapter/';
+        
+        const response = await axios.get(endpoint);
+        console.log(`Loaded ${this.templateType} template:`, response.data);
+        
+        this.existingTemplate = response.data || [];
+      } catch (error) {
+        console.error('Error loading template:', error);
+        this.existingTemplate = [];
+        // Don't show error message if template doesn't exist yet
+        if (error.response?.status !== 404) {
+          this.errorMessage = 'Nie udało się załadować istniejącego szablonu.';
+        }
+      }
+    },
+
+    loadTemplateToEditor() {
+      // Load existing template into editor
+      this.questions = this.existingTemplate.map((text, index) => ({
+        id: this.questionCounter + index + 1,
+        text: text
+      }));
+      this.questionCounter += this.existingTemplate.length;
+      
+      this.successMessage = 'Szablon załadowany do edycji.';
+      setTimeout(() => {
+        this.successMessage = '';
+      }, 2000);
+    },
+
     addQuestion() {
       this.questionCounter++;
       this.questions.push({

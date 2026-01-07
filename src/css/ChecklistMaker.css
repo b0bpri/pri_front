@@ -356,6 +356,54 @@
   color: white;
 }
 
+/* Existing template section */
+.existing-template-section {
+  background-color: #f0f8ff;
+  border: 2px solid #cce5ff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.existing-template-section h3 {
+  color: #004085;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.existing-template-list {
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.existing-template-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e9ecef;
+  align-items: flex-start;
+}
+
+.existing-template-item:last-child {
+  border-bottom: none;
+}
+
+.template-number {
+  color: #007bff;
+  font-weight: 600;
+  min-width: 2rem;
+}
+
+.template-text {
+  flex: 1;
+  line-height: 1.5;
+  color: #2c3e50;
+}
+
 .preview-section {
   border-top: 2px solid #e9ecef;
   padding-top: 2rem;
