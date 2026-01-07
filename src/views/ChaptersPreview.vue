@@ -13,11 +13,14 @@
         </div>
       </div>
 
-      <div class="subheader-container"> <!-- Contains the thesis title -->
+      <div class="subheader-container" style="position: relative;"> <!-- Contains the thesis title -->
         <h3 class="subtitle">Tytuł pracy: {{ thesisTitle }}</h3>
         <h6 class="subtitle">Tytuł &#127468;&#127463: {{ thesisTitleEng }}</h6>
         <h3 v-if="chapterTitle" class="subtitle">Tytuł chapteru: {{ chapterTitle }}</h3>
         <h6 v-if="chapterTitleEng" class="subtitle">Tytuł &#127468;&#127463: {{ chapterTitleEng }}</h6>
+        <button class="thesis-checklist-btn" @click="goToThesisChecklist" title="Checklista dla całej pracy">
+          <i class="icon-checklist"></i> Checklista dla całej pracy
+        </button>
       </div>
 
       <!-- Dropdown: Student's list for promoter -->
@@ -376,6 +379,7 @@ export default {
       isPromoter: authStore.isPromoter,
       isSupervisor: false,
       supervisorId: null,
+      thesisId: null,
       selectedStudentId: '',
       students: [],
       files: [],
@@ -543,8 +547,9 @@ export default {
             const supervisorId = targetGroup.supervisor?.id;
             const userId = Number(authStore.userId);
 
-            // Store supervisor ID for later use
+            // Store supervisor ID and thesis ID for later use
             this.supervisorId = supervisorId;
+            this.thesisId = targetGroup.thesis_id;
 
             console.log('Group supervisor ID:', supervisorId, 'Current user ID:', userId);
 
@@ -1212,6 +1217,21 @@ export default {
       this.$router.push({
         name: 'FileChecklist',
         params: { chapterVersionId: file.chapterVersionId }
+      });
+    },
+
+    goToThesisChecklist() {
+      if (!this.thesisId) {
+        console.error('No thesis ID available');
+        this.errorMessage = 'Nie można otworzyć checklisty - brak ID pracy.';
+        return;
+      }
+
+      console.log(`Navigating to thesis checklist for thesis ID: ${this.thesisId}`);
+      this.$router.push({
+        name: 'FileChecklist',
+        params: { chapterVersionId: this.thesisId },
+        query: { type: 'thesis' }
       });
     },
 

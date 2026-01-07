@@ -21,28 +21,37 @@
 
       <!-- Main content -->
       <div v-else class="content">
-        <!-- Checklist template selector -->
+        <!-- Template type selector -->
         <div class="template-section">
-          <h3>Wybierz szablon checklist</h3>
-          <select v-model="selectedTemplateId" class="template-selector" @change="loadTemplate">
-            <option value="">-- Utwórz nowy szablon --</option>
-            <option v-for="template in templates" :key="template.id" :value="template.id">
-              {{ template.name }} ({{ template.questions.length }} pytań)
-            </option>
-          </select>
+          <h3>Typ szablonu checklist</h3>
+          <div class="template-type-selector">
+            <label class="type-option" :class="{ 'active': templateType === 'chapter' }">
+              <input type="radio" v-model="templateType" value="chapter" @change="loadExistingTemplate">
+              Szablon dla rozdziałów
+            </label>
+            <label class="type-option" :class="{ 'active': templateType === 'thesis' }">
+              <input type="radio" v-model="templateType" value="thesis" @change="loadExistingTemplate">
+              Szablon dla całej pracy
+            </label>
+          </div>
         </div>
 
-        <!-- Template name input -->
-        <div class="template-name-section">
-          <label for="templateName" class="form-label">Nazwa szablonu:</label>
-          <input 
-            id="templateName"
-            v-model="templateName" 
-            type="text" 
-            class="template-name-input"
-            placeholder="Np. Szablon checklist dla prac magisterskich"
-            maxlength="100"
-          />
+        <!-- Existing template display -->
+        <div v-if="existingTemplate.length > 0" class="existing-template-section">
+          <h3>Aktualny szablon</h3>
+          <div class="existing-template-list">
+            <div 
+              v-for="(item, index) in existingTemplate" 
+              :key="index"
+              class="existing-template-item"
+            >
+              <span class="template-number">{{ index + 1 }}.</span>
+              <span class="template-text">{{ item }}</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary" @click="loadTemplateToEditor">
+            Załaduj do edycji
+          </button>
         </div>
 
         <!-- Questions section -->
@@ -165,32 +174,8 @@
             @click="saveTemplate"
           >
             <span v-if="saving">Zapisywanie...</span>
-            <span v-else>{{ selectedTemplateId ? 'Aktualizuj szablon' : 'Zapisz szablon' }}</span>
+            <span v-else>Zapisz szablon</span>
           </button>
-
-          <button 
-            v-if="selectedTemplateId"
-            class="btn btn-danger"
-            :disabled="saving"
-            @click="toggleTemplateDeleteConfirm($event)"
-          >
-            Usuń szablon
-          </button>
-          
-          <!-- Template delete confirmation popup -->
-          <div 
-            v-if="showTemplateDeleteConfirmation" 
-            class="delete-popup template-delete-popup"
-            :style="templateDeletePopupStyle"
-          >
-            <div class="popup-content">
-              <p>Usunąć szablon?</p>
-              <div class="popup-actions">
-                <button class="popup-btn cancel" @click="cancelTemplateDelete">Nie</button>
-                <button class="popup-btn confirm" @click="confirmTemplateDelete">Tak</button>
-              </div>
-            </div>
-          </div>
 
           <button class="btn btn-secondary" @click="clearTemplate">
             Wyczyść
@@ -216,9 +201,8 @@ export default {
       successMessage: '',
       
       // Template data
-      templates: [],
-      selectedTemplateId: '',
-      templateName: '',
+      templateType: 'chapter', // 'thesis' or 'chapter'
+      existingTemplate: [], // Existing template from API
       
       // Questions data
       questions: [],
@@ -228,18 +212,13 @@ export default {
       showDeleteConfirmation: false,
       questionToDelete: null,
       deleteIndex: -1,
-      deletePopupStyle: {},
-      
-      // Template deletion popup state
-      showTemplateDeleteConfirmation: false,
-      templateDeletePopupStyle: {}
+      deletePopupStyle: {}
     };
   },
   
   computed: {
     isValidTemplate() {
-      return this.templateName.trim().length > 0 && 
-             this.questions.length > 0 && 
+      return this.questions.length > 0 && 
              this.questions.every(q => q.text.trim().length > 0);
     },
     
@@ -249,59 +228,55 @@ export default {
   },
   
   created() {
-    this.$nextTick(() => {
+    this.$nextTick(async () => {
       // Check if user is promoter
       if (!this.isPromoter) {
         this.$router.push({ name: 'Home' });
         return;
       }
       
-      this.loadTemplates();
+      // Load existing template
+      await this.loadExistingTemplate();
+      
+      this.loading = false;
     });
   },
   
   methods: {
-    async loadTemplates() {
-      this.loading = true;
+    async loadExistingTemplate() {
       try {
-        // TODO: Replace with actual API call when backend is ready
-        // const response = await axios.get('/api/v1/checklist/templates');
-        // this.templates = response.data;
+        const endpoint = this.templateType === 'thesis' 
+          ? '/api/v1/view/checklistTemplates/thesis/'
+          : '/api/v1/view/checklistTemplates/chapter/';
         
-        // Mock data for now
-        this.templates = [
-          {
-            id: 1,
-            name: 'Szablon podstawowy',
-            questions: [
-              { id: 1, text: 'Student nadał tytuł pracy' },
-              { id: 2, text: 'Praca zawiera wprowadzenie' }
-            ]
-          }
-        ];
+        const response = await axios.get(endpoint);
+        console.log(`Loaded ${this.templateType} template:`, response.data);
         
-        this.loading = false;
+        this.existingTemplate = response.data || [];
       } catch (error) {
-        console.error('Error loading templates:', error);
-        this.errorMessage = 'Nie udało się załadować szablonów checklist.';
-        this.loading = false;
+        console.error('Error loading template:', error);
+        this.existingTemplate = [];
+        // Don't show error message if template doesn't exist yet
+        if (error.response?.status !== 404) {
+          this.errorMessage = 'Nie udało się załadować istniejącego szablonu.';
+        }
       }
     },
-    
-    loadTemplate() {
-      if (!this.selectedTemplateId) {
-        this.clearTemplate();
-        return;
-      }
+
+    loadTemplateToEditor() {
+      // Load existing template into editor
+      this.questions = this.existingTemplate.map((text, index) => ({
+        id: this.questionCounter + index + 1,
+        text: text
+      }));
+      this.questionCounter += this.existingTemplate.length;
       
-      const template = this.templates.find(t => t.id == this.selectedTemplateId);
-      if (template) {
-        this.templateName = template.name;
-        this.questions = template.questions.map(q => ({ ...q }));
-        this.questionCounter = Math.max(...this.questions.map(q => q.id || 0), 0);
-      }
+      this.successMessage = 'Szablon załadowany do edycji.';
+      setTimeout(() => {
+        this.successMessage = '';
+      }, 2000);
     },
-    
+
     addQuestion() {
       this.questionCounter++;
       this.questions.push({
@@ -415,74 +390,44 @@ export default {
       this.successMessage = '';
       
       try {
-        const templateData = {
-          id: this.selectedTemplateId || null,
-          name: this.templateName.trim(),
-          questions: this.questions.map((q, index) => ({
-            id: q.id,
-            text: q.text.trim(),
-            order: index + 1
-          }))
-        };
+        // Prepare array of question strings
+        const questionsArray = this.questions.map(q => q.text.trim());
         
-        // TODO: Replace with actual API call when backend is ready
-        // if (this.selectedTemplateId) {
-        //   await axios.put(`/api/v1/checklist/templates/${this.selectedTemplateId}`, templateData);
-        // } else {
-        //   const response = await axios.post('/api/v1/checklist/templates', templateData);
-        //   this.selectedTemplateId = response.data.id;
-        // }
+        console.log(`Saving ${this.templateType} template with questions:`, questionsArray);
         
-        console.log('Template data to save:', templateData);
+        // Choose endpoint based on template type
+        const endpoint = this.templateType === 'thesis' 
+          ? '/api/v1/post/thesisChecklistTemplate/'
+          : '/api/v1/post/chapterChecklistTemplate/';
         
-        this.successMessage = this.selectedTemplateId ? 
-          'Szablon został zaktualizowany!' : 
-          'Szablon został zapisany!';
+        const response = await axios.post(endpoint, questionsArray);
+        console.log('Template save response:', response.data);
         
-        // Simulate successful save
+        this.successMessage = `Szablon dla ${this.templateType === 'thesis' ? 'pracy' : 'rozdziałów'} został zapisany!`;
+        
+        // Reload template to show updated version
+        await this.loadExistingTemplate();
+        
+        // Clear editor after successful save
+        this.questions = [];
+        this.questionCounter = 0;
+        
         setTimeout(() => {
           this.successMessage = '';
         }, 3000);
-        
-        await this.loadTemplates();
         
       } catch (error) {
         console.error('Error saving template:', error);
         this.errorMessage = 'Nie udało się zapisać szablonu checklist.';
-      } finally {
-        this.saving = false;
-      }
-    },
-    
-    async deleteTemplate() {
-      if (!this.selectedTemplateId) return;
-      
-      this.saving = true;
-      try {
-        // TODO: Replace with actual API call when backend is ready
-        // await axios.delete(`/api/v1/checklist/templates/${this.selectedTemplateId}`);
-        
-        console.log('Deleting template:', this.selectedTemplateId);
-        
-        this.successMessage = 'Szablon został usunięty!';
-        this.clearTemplate();
-        await this.loadTemplates();
-        
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
-        
-      } catch (error) {
-        console.error('Error deleting template:', error);
-        this.errorMessage = 'Nie udało się usunąć szablonu.';
+        if (error.response?.data) {
+          this.errorMessage += ` (${error.response.data})`;
+        }
       } finally {
         this.saving = false;
       }
     },
     
     clearTemplate() {
-      this.selectedTemplateId = '';
-      this.templateName = '';
       this.questions = [];
       this.questionCounter = 0;
     }
