@@ -100,6 +100,41 @@
   font-weight: 600;
 }
 
+/* Template type selector styles */
+.template-type-selector {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.type-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #fff;
+}
+
+.type-option input[type="radio"] {
+  margin-right: 0.5rem;
+}
+
+.type-option:hover {
+  border-color: #007bff;
+  background-color: #f8f9fa;
+}
+
+.type-option.active {
+  border-color: #007bff;
+  background-color: #e7f3ff;
+  font-weight: 600;
+}
+
 .template-selector,
 .template-name-input {
   width: 100%;

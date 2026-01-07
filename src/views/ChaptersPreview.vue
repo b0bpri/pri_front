@@ -1225,12 +1225,11 @@ export default {
         return;
       }
 
-      console.log(`Navigating to thesis checklist for project ID: ${this.projectId}`);
-      //TODO
+      console.log(`Navigating to thesis checklist for thesis ID: ${this.projectId}`);
       this.$router.push({
         name: 'FileChecklist',
-        params: { chapterVersionId: `thesis-${this.projectId}` },
-        query: { type: 'thesis', projectId: this.projectId }
+        params: { chapterVersionId: this.projectId },
+        query: { type: 'thesis' }
       });
     },
 

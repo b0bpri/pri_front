@@ -2,7 +2,9 @@
     <div class="wrapper">
         <div class="card">
             <div class="header-container">
-                <h2 class="title">Checklista dla wersji #{{ chapterVersion || 'Unknown' }}</h2>
+                <h2 class="title">
+                    {{ isThesisChecklist ? 'Checklista dla pracy' : `Checklista dla wersji #${chapterVersion || 'Unknown'}` }}
+                </h2>
                 <button class="back-btn" @click="goBack">
                     <i class="icon-back"></i> Powrót
                 </button>
@@ -62,6 +64,10 @@ export default {
         chapterVersionId: {
             type: [String, Number],
             required: true
+        },
+        type: {
+            type: String,
+            default: 'chapter'
         }
     },
     data() {
@@ -83,12 +89,21 @@ export default {
         hasChecklistItems() {
             return (this.checklist.checklistQuestionModels && this.checklist.checklistQuestionModels.length > 0) || 
                    (this.checklist.models && this.checklist.models.length > 0);
+        },
+        isThesisChecklist() {
+            return this.$route.query.type === 'thesis' || this.type === 'thesis';
         }
     },
     created() {
         if (this.chapterVersionId) {
-            this.chapterVersion = this.chapterVersionId;
-            console.log('Setting chapter version to:', this.chapterVersion);
+            // Extract ID if it's in format "thesis-3"
+            const idString = String(this.chapterVersionId);
+            if (idString.startsWith('thesis-')) {
+                this.chapterVersion = idString.replace('thesis-', '');
+            } else {
+                this.chapterVersion = this.chapterVersionId;
+            }
+            console.log('Setting chapter version to:', this.chapterVersion, '(isThesis:', this.$route.query.type === 'thesis', ')');
             this.fetchChecklist();
             try {
                 const referrer = document.referrer;
@@ -123,26 +138,26 @@ export default {
         },
         async fetchChecklist() {
             if (!this.chapterVersion) {
-                console.error('Cannot fetch checklist: chapter version ID is missing');
-                this.errorMessage = 'Nie można załadować checklisty: brak ID wersji';
+                console.error('Cannot fetch checklist: ID is missing');
+                this.errorMessage = 'Nie można załadować checklisty: brak ID';
                 return;
             }
             
-            console.log('Fetching checklist for chapter version ID:', this.chapterVersion);
+            // Determine endpoint based on type
+            const endpoint = this.isThesisChecklist 
+                ? `/api/v1/view/thesis/${this.chapterVersion}/note/`
+                : `/api/v1/view/version/${this.chapterVersion}/note/`;
+            
+            console.log(`Fetching ${this.isThesisChecklist ? 'thesis' : 'chapter'} checklist from:`, endpoint);
             this.loading = true;
             try {               
-                const response = await axios.get(`/api/v1/view/version/${this.chapterVersion}/note`);
+                const response = await axios.get(endpoint);
                 console.log('Checklist response:', response.data);
                 
                 console.log('Response structure:', JSON.stringify(response.data, null, 2));
                 
                 if (response.data && Object.keys(response.data).length > 0) {
                     this.checklist = response.data;         
-                    
-                    // Handle new response structure
-                    if (response.data.chapter_id) {
-                        console.log('Found chapter_id in response:', response.data.chapter_id);
-                    }
                     
                     if (this.checklist.models && this.checklist.models.length > 0) {
                         console.log(`Processing ${this.checklist.models.length} checklist items`);
@@ -166,8 +181,7 @@ export default {
                         id: null,
                         isPassed: false,
                         models: [],
-                        checklistQuestionModels: [],
-                        version_id: this.chapterVersion
+                        checklistQuestionModels: []
                     };
                 }
                 
@@ -183,8 +197,7 @@ export default {
                         id: null,
                         isPassed: false,
                         models: [],
-                        checklistQuestionModels: [],
-                        version_id: this.chapterVersion
+                        checklistQuestionModels: []
                     };
                     this.errorMessage = '';
                 } else if (error.response?.status === 500) {
@@ -196,8 +209,7 @@ export default {
                             id: null,
                             isPassed: false,
                             models: [],
-                            checklistQuestionModels: [],
-                            version_id: this.chapterVersion
+                            checklistQuestionModels: []
                         };
                         this.errorMessage = '';
                     } else {
@@ -302,40 +314,52 @@ export default {
         },
 
         createChecklistDto(items) {
-            const versionId = parseInt(this.chapterVersion, 10);
+            const itemId = parseInt(this.chapterVersion, 10);
             
-            console.log(`Creating checklist DTO with chapter version ID: ${versionId}`);
+            console.log(`Creating ${this.isThesisChecklist ? 'thesis' : 'chapter'} checklist DTO with ID: ${itemId}`);
             const modelsArray = items.map(item => {
                 const isChecked = Boolean(item.checked || item.passed || item.points > 0);
-                const pointValue = isChecked ? 1 : 0;
                 
                 const resultItem = {
                     ...(item.id && { id: item.id }),
                     question: item.question,
-                    points: pointValue,
-                    critical: item.critical || item.isCritical || item.is_critical || false
+                    passed: isChecked
                 };
                 
                 console.log(`Saving item "${item.question}":`, {
                     id: item.id || 'new',
-                    checked: isChecked,
-                    points: pointValue,
-                    critical: resultItem.critical
+                    passed: isChecked
                 });
                 
                 return resultItem;
             });
 
             const dto = {
-                upload_time: new Date(), 
-                passed: this.checklist.isPassed,
-                version_id: versionId, 
+                date: new Date(), 
                 models: modelsArray
             };
 
-            console.log("Final DTO models points check:");
+            // Add checklist id if updating existing
+            if (this.checklist?.id) {
+                dto.id = this.checklist.id;
+                console.log('Adding checklist ID to DTO:', this.checklist.id);
+            }
+
+            // Add appropriate ID based on checklist type
+            if (this.isThesisChecklist) {
+                dto.thesisId = itemId;
+            } else {
+                dto.versionId = itemId;
+            }
+            
+            // Add checklist id if updating existing
+            if (this.checklist?.id) {
+                dto.id = this.checklist.id;
+            }
+
+            console.log("Final DTO check:");
             dto.models.forEach(model => {
-                console.log(`Item ${model.id} (${model.question}): points = ${model.points}`);
+                console.log(`Item ${model.id} (${model.question}): passed = ${model.passed}`);
             });
             
             return dto;
@@ -358,25 +382,6 @@ export default {
                 const items = this.getChecklistItems();
                 const checklistDto = this.createChecklistDto(items);
 
-                if (!checklistDto.version_id || checklistDto.version_id <= 0) {
-                    console.warn('Invalid version_id, using chapterVersion:', this.chapterVersion);
-                    checklistDto.version_id = parseInt(this.chapterVersion, 10);
-                }
-
-                // Add chapter_id if available from the current checklist
-                if (this.checklist?.chapter_id) {
-                    checklistDto.chapter_id = this.checklist.chapter_id;
-                }
-
-                if (checklistDto.models) {
-                    checklistDto.models = checklistDto.models.map(item => ({
-                        id: item.id,
-                        value: item.value,
-                        category: item.category || 'general',
-                        passed: item.points > 0,
-                    }));
-                }
-
                 console.log('Saving checklist with structure:', JSON.stringify(checklistDto, null, 2));
 
                 const config = {
@@ -394,26 +399,8 @@ export default {
                         this.successMessage = '';
                     }, 3000);
 
-                    // Update local checklist data if response contains updated information
-                    if (response.data && typeof response.data === 'object') {
-                        if (response.data.chapter_id && !this.checklist.chapter_id) {
-                            this.checklist.chapter_id = response.data.chapter_id;
-                        }
-                        
-                        if (response.data.models) {
-                            this.checklist.models.forEach(localItem => {
-                                const responseItem = response.data.models.find(m => m.id === localItem.id);
-                                if (responseItem) {
-                                    localItem.passed = responseItem.passed;
-                                    localItem.checked = responseItem.passed;
-                                    localItem.points = responseItem.passed ? 1 : 0;
-                                }
-                            });
-                        }
-                    }
-
+                    // Refresh checklist from backend to get updated data
                     await this.fetchChecklist();
-                    this.verifyChanges(items);
                 } else {
                     throw new Error(`Unexpected response from server: ${response.data}`);
                 }
