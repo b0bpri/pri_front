@@ -1897,11 +1897,13 @@ export default {
         if (response.data) {
           this.thesisTitle = response.data.title || response.data.name || 'Brak tytułu';
           this.thesisTitleEng = response.data.title_en || response.data.name_en || 'Brak tytułu angielskiego';
-          console.log('Fetched thesis title:', this.thesisTitle);
+          this.thesisId = response.data.id; // Set thesis ID for checklist navigation
+          console.log('Fetched thesis title and ID:', this.thesisTitle, this.thesisId);
         }
       } catch (error) {
         console.error('Error fetching thesis title:', error);
         this.thesisTitle = 'ERROR, thesis title not found';
+        this.thesisId = null;
       }
     },
 
