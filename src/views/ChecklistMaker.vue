@@ -405,6 +405,13 @@ export default {
         
         this.successMessage = `Szablon dla ${this.templateType === 'thesis' ? 'pracy' : 'rozdziałów'} został zapisany!`;
         
+        // Reload template to show updated version
+        await this.loadExistingTemplate();
+        
+        // Clear editor after successful save
+        this.questions = [];
+        this.questionCounter = 0;
+        
         setTimeout(() => {
           this.successMessage = '';
         }, 3000);

@@ -379,6 +379,7 @@ export default {
       isPromoter: authStore.isPromoter,
       isSupervisor: false,
       supervisorId: null,
+      thesisId: null,
       selectedStudentId: '',
       students: [],
       files: [],
@@ -546,8 +547,9 @@ export default {
             const supervisorId = targetGroup.supervisor?.id;
             const userId = Number(authStore.userId);
 
-            // Store supervisor ID for later use
+            // Store supervisor ID and thesis ID for later use
             this.supervisorId = supervisorId;
+            this.thesisId = targetGroup.thesis_id;
 
             console.log('Group supervisor ID:', supervisorId, 'Current user ID:', userId);
 
@@ -1219,16 +1221,16 @@ export default {
     },
 
     goToThesisChecklist() {
-      if (!this.projectId) {
-        console.error('No project ID available');
-        this.errorMessage = 'Nie można otworzyć checklisty - brak ID projektu.';
+      if (!this.thesisId) {
+        console.error('No thesis ID available');
+        this.errorMessage = 'Nie można otworzyć checklisty - brak ID pracy.';
         return;
       }
 
-      console.log(`Navigating to thesis checklist for thesis ID: ${this.projectId}`);
+      console.log(`Navigating to thesis checklist for thesis ID: ${this.thesisId}`);
       this.$router.push({
         name: 'FileChecklist',
-        params: { chapterVersionId: this.projectId },
+        params: { chapterVersionId: this.thesisId },
         query: { type: 'thesis' }
       });
     },

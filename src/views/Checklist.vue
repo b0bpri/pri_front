@@ -335,15 +335,9 @@ export default {
             });
 
             const dto = {
-                date: new Date(), 
+                uploadTime: new Date(), 
                 models: modelsArray
             };
-
-            // Add checklist id if updating existing
-            if (this.checklist?.id) {
-                dto.id = this.checklist.id;
-                console.log('Adding checklist ID to DTO:', this.checklist.id);
-            }
 
             // Add appropriate ID based on checklist type
             if (this.isThesisChecklist) {
@@ -355,12 +349,13 @@ export default {
             // Add checklist id if updating existing
             if (this.checklist?.id) {
                 dto.id = this.checklist.id;
+                // console.log('Checklist has ID - updating existing:', this.checklist.id);
+            } else {
+                // console.log('Checklist has no ID - this might cause issues');
+                // console.log('Checklist object:', this.checklist);
             }
 
-            console.log("Final DTO check:");
-            dto.models.forEach(model => {
-                console.log(`Item ${model.id} (${model.question}): passed = ${model.passed}`);
-            });
+            // console.log("Final DTO structure:", JSON.stringify(dto, null, 2));
             
             return dto;
         },
@@ -382,15 +377,10 @@ export default {
                 const items = this.getChecklistItems();
                 const checklistDto = this.createChecklistDto(items);
 
-                console.log('Saving checklist with structure:', JSON.stringify(checklistDto, null, 2));
-
-                const config = {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                };
+                // console.log('Saving checklist with structure:', JSON.stringify(checklistDto, null, 2));
                 
-                const response = await axios.post('/api/v1/post/note', checklistDto, config);
+                // Don't override headers - let axios interceptor add JWT token
+                const response = await axios.post('/api/v1/post/note', checklistDto);
                 console.log('Save response:', response);
                 
                 if (response.data === true || response.data) {
