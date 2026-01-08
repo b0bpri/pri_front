@@ -92,7 +92,9 @@ import '@vuepic/vue-datepicker/dist/main.css';
               </span>
             </td>
             <td class="status-cell">
-              <span class="supervisor-name">{{group.defence_date || 'Nieprzypisana' }}</span>
+              <span class="status-badge" :class="getDefenceDateClass(group)">
+                {{ formatDefenceDate(group.defence_date) }}
+              </span>
             </td>
             <td class="actions-cell">
               <div class="action-buttons">
@@ -314,7 +316,7 @@ export default {
           processedGroups = [];
         }
         this.groups = await this.fetchThesisStatuses(processedGroups);
-        //this.groups = await this.fetchDefenceDates(processedGroups);
+        this.groups = await this.fetchDefenceDates(this.groups);
         if (!this.isPromoter && this.userId) {
           this.extractUserGroupsFromData();
         }
@@ -328,29 +330,37 @@ export default {
         this.loading = false;
       }
     },
-    async fetchDefenceDates(groups){
+    async fetchDefenceDates(groups) {
       try {
         const groupsWithDefenceDates = await Promise.all(groups.map(async (group) => {
-          if (!group.project_id) {
-            return group;
+          if (!group.thesis_id) {
+            return {
+              ...group,
+              defence_date: null
+            };
+          }
+          
+          try {
+            const response = await axios.get(`/api/v1/chapter/getDefence/${group.thesis_id}`);
+            console.log(`Defence date for group ${group.name} (thesis_id: ${group.thesis_id}):`, response.data);
+            
+            return {
+              ...group,
+              defence_date: response.data.date || null
+            };
+          } catch (error) {
+            console.warn(`Could not fetch defence date for group ${group.name}:`, error);
+            return {
+              ...group,
+              defence_date: null
+            };
           }
         }));
-        try {
-          const response = await axios.get(`/api/v1/chapter/getDefence/${group.project_id}`);
-
-          console.log(`Defence date for group ${group.name}:`, response.data);
-
-          return {
-            ...group,
-            defence_date: response.data.date || 'PENDING'
-          };
-        }
-        catch (error) {
-          console.error('Error fetching dates:', error);
-        }
-      }
-      catch(error){
-        console.error('Error fetching groups:', error);
+        
+        return groupsWithDefenceDates;
+      } catch (error) {
+        console.error('Error fetching defence dates:', error);
+        return groups;
       }
     },
     
@@ -421,6 +431,32 @@ export default {
       
       const groupId = group.project_id;
       return this.userGroups.includes(groupId);
+    },
+    
+    formatDefenceDate(dateString) {
+      if (!dateString) return 'Nieprzypisana';
+      
+      try {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+      } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'Nieprzypisana';
+      }
+    },
+    
+    getDefenceDateClass(group) {
+      if (group.defence_date) {
+        return 'status-accepted';
+      } else {
+        return 'status-rejected';
+      }
     },
     
     isGroupSupervisor(group) {
@@ -715,6 +751,15 @@ export default {
         }, 5000);
         return;
       }
+      
+      if (!group.thesis_id) {
+        this.errorMessage = 'Brak ID pracy dyplomowej. Praca musi być najpierw zaakceptowana.';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+        return;
+      }
+      
       //adjust date format
       const adjustedDate = new Date(this.date);
       if (this.date) {
@@ -725,19 +770,31 @@ export default {
       try {
         const url = `/api/v1/chapter/addDefence`;
         console.log('Request URL:', url);
+        console.log('Using thesis_id:', group.thesis_id);
         const response = await axios.post(url, {
-          chapter_id: group.project_id,
+          chapter_id: group.thesis_id,
           date: adjustedDate.toISOString(),
           comment: 'test'
         });
         console.log('Response data:', response.data);
         console.log('FormData contains:', {
-          chapter_id: group.project_id,
+          chapter_id: group.thesis_id,
           date: adjustedDate.toISOString(),
           comment: 'test'
         });
         // Refresh the groups list to show the updated defense date
         await this.fetchGroups();
+        
+        // Close the modal
+        const modal = Modal.getInstance(document.getElementById('defenseDateModal'));
+        if (modal) {
+          modal.hide();
+        }
+        
+        this.successMessage = 'Data obrony została zapisana pomyślnie.';
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
 
       } catch (error) {
         console.error('Error saving defense date:', error);
