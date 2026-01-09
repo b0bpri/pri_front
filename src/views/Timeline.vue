@@ -17,9 +17,11 @@ const props = defineProps({
   }
 });
 
+const timelineRef = ref(null);
 const error = ref(null);
-//Where the pulled data is stored
 const timelineData = ref(null);
+const defenceDateData = ref(null);
+
 const fetchTimeline = async () => {
   try {
     console.log('Fetching timeline for thesis ID:', props.thesisId);
@@ -32,9 +34,19 @@ const fetchTimeline = async () => {
       error.value = 'No timeline data available';
       return;
     }
+
+    const defenceDateResponse = await axios.get(`/api/v1/chapter/getDefence/${props.thesisId}`);
+    console.log('Defence date response:', defenceDateResponse.data);
+    if (!defenceDateResponse.data) {
+      console.error('No defence date data returned for thesis ID:', props.thesisId);
+      error.value = 'No defence date data available';
+      return;
+    }
     
     timelineData.value = response.data;
     console.log('Timeline data loaded:', timelineData.value);
+    defenceDateData.value = defenceDateResponse.data;
+    console.log('Defence date data loaded:', defenceDateData.value);
     
     // After data is loaded, process it
     if (timelineData.value) {
@@ -89,16 +101,15 @@ function processDataEntries() {
     if (!groupExistsAlready(groups, author_id)) {
       pushGroup(groups, author_id, author_name);
     }
-
     [...chapter.versions].reverse().forEach(version => {
-      if (!itemExistsAlready(items, version.id, Date.parse(version.upload_date_time))) {
+      if (!itemExistsAlready(items, version.id, author_id)) {
         let status = null;
         let score = null;
         if (isSupervisor(thesis_supervisor_id, version.uploader.user_data_id)) {
           was_reviewed = 1;
           status = 'status-supervisor';
           score = version.checklist_tally.resolved + '/' + version.checklist_tally.total;
-          console.log('Score is:', score);
+          //console.log('Score is:', score);
 
         }
         else {
@@ -129,22 +140,44 @@ function processDataEntries() {
       }
     });
   });
+  console.log('BEFORE TRYING TO ADD DEFENCE DATE');
+  if (defenceDateData.value) {
+    console.log('TRYING TO ADD DEFENCE DATE');
+    const defenseDate = Date.parse(defenceDateData.value.date);
+    const defenseComment = defenceDateData.value.comment || 'Thesis Defense';
+
+    groups.value.forEach(group => {
+      pushItem(
+          items,
+          `defense-${group.id}`,  // Unique ID for each defense item
+          group.id,  // Group ID
+          defenseDate,
+          'Supervisor',
+          defenseComment,
+          null,
+          'status-defence-date'
+      );
+    });
+  }
 }
 //FIX: This should be passing a version object, instead of two IDs
 function isSupervisor(supervisor_id, version_uploader_id){
   if (supervisor_id === version_uploader_id) {
-    console.log('This is a Supervisor');
+    //console.log('This is a Supervisor');
     return 'true';
   }
 }
 
 //FIX: This should be two separate functions, not a two-in-one
-function matchChapterAndVersion(entry_id, entry_date) {
+function matchChapterAndVersion(combined_id, entry_date) {
+  const [version_id, group_id] = combined_id.split('-');
   for (const chapter of timelineData.value.chapters) {
+    if (chapter.author.user_data_id.toString() !== group_id) continue;
     console.log('Chapter being checked:', chapter);
+
     const version = chapter.versions.find(version =>
-        new Date(version.upload_date_time).getTime() === entry_date &&
-        version.id === entry_id
+        version.id.toString() === version_id &&
+        new Date(version.upload_date_time).getTime() === entry_date
     );
 
     if (version) {
@@ -162,7 +195,7 @@ function matchChapterAndVersion(entry_id, entry_date) {
 //Populates the Vue Timeline Chart's 'items' array with entries
 function pushItem(items_array_ref, version_id, group_id, date, uploadedBy, comment, score, status) {
   const newItem = {
-    id: version_id,
+    id: `${version_id}-${group_id}`,
     group: group_id,
     type: 'point',
     start: date,
@@ -174,8 +207,8 @@ function pushItem(items_array_ref, version_id, group_id, date, uploadedBy, comme
   console.log('Adding item:', newItem);
   items_array_ref.value.push(newItem);
 }
-function itemExistsAlready(array_to_check, item_id, item_date){
-  return array_to_check.value.some(item => item.id === `${item_id}-${item_date}`);
+function itemExistsAlready(array_to_check, item_id, group_id){
+  return array_to_check.value.some(item => item.id === `${item_id}-${group_id}`);
 }
 //Populates the Vue Timeline Chart's 'group' array with entries
 function pushGroup (group_array_ref, student_id, name_of_student){
@@ -209,18 +242,18 @@ function goBack() {
 
 const timelineRange = computed(() => {
   const currentYear = new Date().getFullYear();
-  let beginningDate = new Date(currentYear - 1, 6, 1).getTime(); // July 1st of previous year
-  let endingDate = new Date(currentYear + 1, 5, 30).getTime(); // June 30th of next year
+  let beginningDate = new Date(currentYear - 1, 9, 1).getTime();
+  let endingDate = new Date(currentYear, 2, 28).getTime();
 
   if (dateFlag.value) {
     const entryYear = new Date(dateFlag.value).getFullYear();
     const entryMonth = new Date(dateFlag.value).getMonth();
 
     if (entryMonth < 4) {
-      beginningDate = new Date(entryYear - 1, 6, 1).getTime();
+      beginningDate = new Date(entryYear - 1, 9, 1).getTime();
       endingDate = new Date(entryYear, 1, 28).getTime();
     } else {
-      beginningDate = new Date(entryYear, 6, 1).getTime();
+      beginningDate = new Date(entryYear, 9, 1).getTime();
       endingDate = new Date(entryYear + 1, 1, 28).getTime();
     }
   }
@@ -228,6 +261,9 @@ const timelineRange = computed(() => {
   //console.log('Ending date is: ', endingDate);
   return [beginningDate, endingDate];
 });
+const viewport = ref({ start: timelineRange.value[0], end: timelineRange.value[1] });
+const maxRange = ref({ start: timelineRange.value[0], end: timelineRange.value[1] });
+const viewportSize = computed(() => viewport.value.end - viewport.value.start);
 /* discarded functions kept for possible future use
 //Discarded because I made adding items start with the most recent entry rather that the oldest. This made checking the status of future versions obsolete.
 function assignStatus(supervisor_id, version_uploader_id, version_entry_id, version_upload_date) {
@@ -252,7 +288,7 @@ function wasReviewed(version_entry_id, version_upload_date) {
   }
 }
 */
-//abc
+
 
 onMounted(async () => {
   await fetchTimeline();
@@ -277,6 +313,7 @@ onMounted(async () => {
     </div>
     <div class="card timeline-card">
       <Timeline
+          ref="timelineRef"
           class="timeline"
           :groups="groups"
           :items="items"
@@ -286,6 +323,7 @@ onMounted(async () => {
           @mousemoveTimeline="onMousemoveTimeline"
           @mouseleaveTimeline="onMouseleaveTimeline"
           @click="displayItemInformation"
+          @changeViewport="viewport = $event"
       >
         <template #marker="{item}">
           <div class="marker-content">
@@ -298,6 +336,23 @@ onMounted(async () => {
           </div>
         </template>
       </Timeline>
+      <div class="controls">
+        <button @click="viewport.start > maxRange.start && timelineRef.setViewport(viewport.start - viewportSize * 0.2, viewport.end - viewportSize * 0.2)">
+          Move left
+        </button>
+        <button @click="viewport.end + viewportSize * 0.2 < maxRange.end && timelineRef.setViewport(viewport.start + viewportSize * 0.2, viewport.end + viewportSize * 0.2)">
+          Move right
+        </button>
+        <button @click="timelineRef.setViewport(viewport.start - viewportSize * 0.2, viewport.end + viewportSize * 0.2)">
+          Zoom out
+        </button>
+        <button @click="timelineRef.setViewport(viewport.start + viewportSize * 0.2, viewport.end - viewportSize * 0.2)">
+          Zoom in
+        </button>
+        <button @click="timelineRef.setViewport(maxRange.start, maxRange.end)">
+          Set viewport to max range
+        </button>
+      </div>
     </div>
   
   <div class="info-card" v-if="matched_json_chapter && matched_json_version">

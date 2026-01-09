@@ -15,7 +15,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
       </button>
     </div>
 
-    <!-- Filters -->
+    <!-- Filtrowanie -->
     <div class="filters-section">
       <div class="filter-group">
         <input type="text" class="search-input" placeholder="Przeszukaj grupy..." v-model="searchTerm">
@@ -30,7 +30,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
       </div>
     </div>
 
-    <!-- Loading groups -->
+    <!-- Wczytanie grup -->
     <div v-if="loading" class="loading-state">
       <p>Ładowanie grup projektów...</p>
     </div>
@@ -46,7 +46,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
       <p class="success-message">{{ successMessage }}</p>
     </div>
 
-    <!-- Group table -->
+    <!-- Tabela grup -->
     <div v-else class="table-container">
       <table class="groups-table">
         <thead>
@@ -92,9 +92,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
               </span>
             </td>
             <td class="status-cell">
-              <span class="status-badge" :class="getDefenceDateClass(group)">
-                {{ formatDefenceDate(group.defence_date) }}
-              </span>
+              <span class="supervisor-name">{{group.defence_date || 'Nieprzypisana' }}</span>
             </td>
             <td class="actions-cell">
               <div class="action-buttons">
@@ -139,21 +137,6 @@ import '@vuepic/vue-datepicker/dist/main.css';
                   {{ (isUserInGroup(group) || isPromoter) && isThesisAccepted(group) ? 'Ustal termin obrony' : 'Brak dostępu' }}
                 </button>
 
-                <button v-if="isPromoter && isThesisAccepted(group) && isGroupSupervisor(group)"
-                        class="action-btn secondary"
-                        @click.stop="openGradeModal(group)">
-                  <i class="icon-grade"></i>
-                  Dodaj ocenę opisową
-                </button>
-
-                <button v-if="isPromoter && isThesisAccepted(group) && isGroupSupervisor(group)"
-                        class="action-btn secondary checklist-btn"
-                        @click.stop="viewThesisChecklist(group)"
-                        title="Checklista dla całej pracy">
-                  <i class="icon-checklist"></i>
-                  Checklista
-                </button>
-
               </div>
             </td>
           </tr>
@@ -190,40 +173,6 @@ import '@vuepic/vue-datepicker/dist/main.css';
       </div>
     </div>
   </div>
-
-  <!-- Add Grade Modal -->
-  <div class="modal fade" id="gradeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Dodaj ocenę opisową - {{ selectedGroup?.name }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="alert alert-info mb-3">
-            <i class="icon-info"></i> <strong>Uwaga:</strong> Ocena opisowa nie jest widoczna dla studentów.
-          </div>
-          <div class="mb-3">
-            <label for="gradeDescription" class="form-label">Opis oceny:</label>
-            <textarea
-                id="gradeDescription"
-                class="form-control"
-                v-model="gradeDescription"
-                rows="8"
-                placeholder="Wprowadź ocenę opisową pracy dyplomowej..."
-            ></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <p class="me-auto mb-0 grade-modal-message" :class="[gradeModalError ? 'error-message' : 'success-message', { 'invisible': !gradeModalMessage }]">
-            {{ gradeModalMessage || 'placeholder' }}
-          </p>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
-          <button type="button" class="btn btn-primary" @click="saveGrade">Zapisz</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -247,11 +196,6 @@ export default {
       userGroups: [], 
       userId: authStore.userId,
       isPromoter: authStore.isPromoter,
-      selectedGroup: null,
-      gradeDescription: '',
-      gradeModal: null,
-      gradeModalMessage: '',
-      gradeModalError: false,
       date: null
     };
   },
@@ -268,7 +212,7 @@ export default {
     filteredGroups() {
       let filtered = this.groups.filter(group => !!group.project_id);
 
-      // Search term
+      // Wyszukiwanie
       if (this.searchTerm) {
         const term = this.searchTerm.toLowerCase();
         filtered = filtered.filter(group => 
@@ -277,7 +221,7 @@ export default {
         );
       }
 
-      // Promoter filter
+      // Promotor
       if (this.selectedSupervisor) {
         filtered = filtered.filter(group => 
           group.supervisor && group.supervisor.lname === this.selectedSupervisor
@@ -316,7 +260,7 @@ export default {
           processedGroups = [];
         }
         this.groups = await this.fetchThesisStatuses(processedGroups);
-        this.groups = await this.fetchDefenceDates(this.groups);
+        //this.groups = await this.fetchDefenceDates(processedGroups);
         if (!this.isPromoter && this.userId) {
           this.extractUserGroupsFromData();
         }
@@ -330,37 +274,29 @@ export default {
         this.loading = false;
       }
     },
-    async fetchDefenceDates(groups) {
+    async fetchDefenceDates(groups){
       try {
         const groupsWithDefenceDates = await Promise.all(groups.map(async (group) => {
-          if (!group.thesis_id) {
-            return {
-              ...group,
-              defence_date: null
-            };
-          }
-          
-          try {
-            const response = await axios.get(`/api/v1/chapter/getDefence/${group.thesis_id}`);
-            console.log(`Defence date for group ${group.name} (thesis_id: ${group.thesis_id}):`, response.data);
-            
-            return {
-              ...group,
-              defence_date: response.data.date || null
-            };
-          } catch (error) {
-            console.warn(`Could not fetch defence date for group ${group.name}:`, error);
-            return {
-              ...group,
-              defence_date: null
-            };
+          if (!group.project_id) {
+            return group;
           }
         }));
-        
-        return groupsWithDefenceDates;
-      } catch (error) {
-        console.error('Error fetching defence dates:', error);
-        return groups;
+        try {
+          const response = await axios.get(`/api/v1/chapter/getDefence/${group.project_id}`);
+
+          console.log(`Defence date for group ${group.name}:`, response.data);
+
+          return {
+            ...group,
+            defence_date: response.data.date || 'PENDING'
+          };
+        }
+        catch (error) {
+          console.error('Error fetching dates:', error);
+        }
+      }
+      catch(error){
+        console.error('Error fetching groups:', error);
       }
     },
     
@@ -382,7 +318,6 @@ export default {
             
             return {
               ...group,
-              thesis_id: response.data.id,
               thesis_status: response.data.approval_status || response.data.status || 'PENDING'
             };
           } catch (error) {
@@ -433,38 +368,13 @@ export default {
       return this.userGroups.includes(groupId);
     },
     
-    formatDefenceDate(dateString) {
-      if (!dateString) return 'Nieprzypisana';
-      
-      try {
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        
-        return `${day}.${month}.${year} ${hours}:${minutes}`;
-      } catch (error) {
-        console.error('Error formatting date:', error);
-        return 'Nieprzypisana';
-      }
-    },
-    
-    getDefenceDateClass(group) {
-      if (group.defence_date) {
-        return 'status-accepted';
-      } else {
-        return 'status-rejected';
-      }
-    },
-    
     isGroupSupervisor(group) {
       if (!this.isPromoter || !group || !group.supervisor) {
         return false;
       }
       
       // Check if the current user (promoter) is the supervisor of this group
+      // The supervisor ID in the API response is what we need to check against authStore.userId
       return group.supervisor.id === Number(authStore.userId);
     },
     
@@ -622,119 +532,6 @@ export default {
       const modal = new Modal(document.getElementById('defenseDateModal'));
       modal.show();
     },
-
-    viewThesisChecklist(group) {
-      if (!group || !group.thesis_id) {
-        console.error('Cannot view thesis checklist: Invalid thesis_id', group);
-        this.errorMessage = 'Nie można otworzyć checklisty - brak ID pracy.';
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 5000);
-        return;
-      }
-
-      if (!this.isPromoter || !this.isGroupSupervisor(group)) {
-        console.warn('Non-supervisor attempted to access thesis checklist:', group.thesis_id);
-        this.errorMessage = 'Tylko promotor tej grupy może wyświetlić checklistę dla całej pracy.';
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 5000);
-        return;
-      }
-
-      console.log(`Navigating to thesis checklist for thesis ID: ${group.thesis_id}`);
-      
-      this.$router.push({
-        name: 'FileChecklist',
-        params: { chapterVersionId: group.thesis_id },
-        query: { type: 'thesis' }
-      });
-    },
-    
-    async openGradeModal(group) {
-      this.selectedGroup = group;
-      this.gradeDescription = '';
-      this.gradeModalMessage = '';
-      this.gradeModalError = false;
-      
-      // Get existing review if available
-      if (group.thesis_id) {
-        try {
-          console.log('Fetching review for thesis_id:', group.thesis_id);
-          const response = await axios.get(`/api/v1/thesis/${group.thesis_id}/review`);
-          console.log('Review response:', response.data);
-          if (response.data && response.data.review) {
-            this.gradeDescription = response.data.review;
-            console.log('Loaded review content:', this.gradeDescription);
-          } else {
-            console.log('No review in response');
-          }
-        } catch (error) {
-          if (error.response && error.response.status !== 404) {
-            console.error('Błąd podczas pobierania oceny opisowej:', error);
-          } else {
-            console.log('No review found (404)');
-          }
-        }
-      } else {
-        console.warn('No thesis_id for group:', group.name);
-      }
-
-      if (!this.gradeModal) {
-        this.gradeModal = new Modal(document.getElementById('gradeModal'));
-      }
-      this.gradeModal.show();
-    },
-    
-    async saveGrade() {
-      if (!this.selectedGroup) {
-        return;
-      }
-      
-      if (!this.gradeDescription.trim()) {
-        this.gradeModalMessage = 'Opis oceny nie może być pusty.';
-        this.gradeModalError = true;
-        setTimeout(() => {
-          this.gradeModalMessage = '';
-        }, 3000);
-        return;
-      }
-      
-      if (!this.selectedGroup.thesis_id) {
-        this.gradeModalMessage = 'Brak ID pracy dyplomowej.';
-        this.gradeModalError = true;
-        setTimeout(() => {
-          this.gradeModalMessage = '';
-        }, 3000);
-        return;
-      }
-      
-      try {
-        console.log('Saving review for thesis_id:', this.selectedGroup.thesis_id);
-        console.log('Review content:', this.gradeDescription);
-        
-        await axios.put(`/api/v1/thesis/${this.selectedGroup.thesis_id}/review`, {
-          review_content: this.gradeDescription
-        });
-        
-        console.log('Review saved successfully');
-        
-        this.gradeModalMessage = 'Ocena opisowa została zapisana.';
-        this.gradeModalError = false;
-        setTimeout(() => {
-          this.gradeModalMessage = '';
-        }, 3000);
-      } catch (error) {
-        console.error('Błąd podczas zapisywania oceny opisowej:', error);
-        console.error('Error response:', error.response?.data);
-        this.gradeModalMessage = 'Nie udało się zapisać oceny opisowej.';
-        this.gradeModalError = true;
-        setTimeout(() => {
-          this.gradeModalMessage = '';
-        }, 5000);
-      }
-    },
-    
     async saveDefenseDate(group) {
       console.log('Saving defense date for group:', group.project_id);
 
@@ -751,15 +548,6 @@ export default {
         }, 5000);
         return;
       }
-      
-      if (!group.thesis_id) {
-        this.errorMessage = 'Brak ID pracy dyplomowej. Praca musi być najpierw zaakceptowana.';
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 5000);
-        return;
-      }
-      
       //adjust date format
       const adjustedDate = new Date(this.date);
       if (this.date) {
@@ -770,31 +558,19 @@ export default {
       try {
         const url = `/api/v1/chapter/addDefence`;
         console.log('Request URL:', url);
-        console.log('Using thesis_id:', group.thesis_id);
         const response = await axios.post(url, {
-          chapter_id: group.thesis_id,
+          chapter_id: group.project_id,
           date: adjustedDate.toISOString(),
           comment: 'test'
         });
         console.log('Response data:', response.data);
         console.log('FormData contains:', {
-          chapter_id: group.thesis_id,
+          chapter_id: group.project_id,
           date: adjustedDate.toISOString(),
           comment: 'test'
         });
         // Refresh the groups list to show the updated defense date
         await this.fetchGroups();
-        
-        // Close the modal
-        const modal = Modal.getInstance(document.getElementById('defenseDateModal'));
-        if (modal) {
-          modal.hide();
-        }
-        
-        this.successMessage = 'Data obrony została zapisana pomyślnie.';
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
 
       } catch (error) {
         console.error('Error saving defense date:', error);
