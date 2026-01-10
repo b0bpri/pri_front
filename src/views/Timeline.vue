@@ -147,6 +147,11 @@ function processDataEntries() {
     const defenseDate = Date.parse(defenceDateData.value.date);
     const defenseComment = defenceDateData.value.comment || 'Thesis Defense';
 
+    const formattedDate = new Date(defenseDate).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+
     groups.value.forEach(group => {
       pushItem(
           items,
@@ -155,7 +160,7 @@ function processDataEntries() {
           defenseDate,
           'Supervisor',
           defenseComment,
-          null,
+          formattedDate,
           'status-defence-date'
       );
     });
@@ -337,20 +342,20 @@ onMounted(async () => {
           </div>
         </template>
       </Timeline>
-      <div class="controls">
-        <button @click="viewport.start > maxRange.start && timelineRef.setViewport(viewport.start - viewportSize * 0.2, viewport.end - viewportSize * 0.2)">
+      <div>
+        <button class="action-btn preview-btn" @click="viewport.start > maxRange.start && timelineRef.setViewport(viewport.start - viewportSize * 0.2, viewport.end - viewportSize * 0.2)">
           Move left
         </button>
-        <button @click="viewport.end + viewportSize * 0.2 < maxRange.end && timelineRef.setViewport(viewport.start + viewportSize * 0.2, viewport.end + viewportSize * 0.2)">
+        <button class="action-btn preview-btn" @click="viewport.end + viewportSize * 0.2 < maxRange.end && timelineRef.setViewport(viewport.start + viewportSize * 0.2, viewport.end + viewportSize * 0.2)">
           Move right
         </button>
-        <button @click="timelineRef.setViewport(viewport.start - viewportSize * 0.2, viewport.end + viewportSize * 0.2)">
+        <button class="action-btn checklist-btn" @click="timelineRef.setViewport(viewport.start - viewportSize * 0.2, viewport.end + viewportSize * 0.2)">
           Zoom out
         </button>
-        <button @click="timelineRef.setViewport(viewport.start + viewportSize * 0.2, viewport.end - viewportSize * 0.2)">
+        <button class="action-btn checklist-btn" @click="timelineRef.setViewport(viewport.start + viewportSize * 0.2, viewport.end - viewportSize * 0.2)">
           Zoom in
         </button>
-        <button @click="timelineRef.setViewport(maxRange.start, maxRange.end)">
+        <button class="action-btn comment-btn" @click="timelineRef.setViewport(maxRange.start, maxRange.end)">
           Set viewport to max range
         </button>
       </div>
