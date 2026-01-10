@@ -189,10 +189,10 @@
     border-bottom-color: #63cc07;
 }
 
-:deep(.status-student-reviewed) {
+:deep(.status-defense-date) {
     width: 30px !important;
     height: 30px !important;
     min-width: 30px !important;
     min-height: 30px !important;
-    border-bottom-color: #856404;
+    border-bottom-color: #dc3545;
 }
