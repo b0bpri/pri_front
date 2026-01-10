@@ -31,7 +31,6 @@
     max-width: 1400px;
     width: 100%;
     padding: 1rem;
-    height: 400px;
 }
 
 .header-container {
@@ -141,19 +140,24 @@
 .timeline:deep(.marker) {
     contain: unset;
     display: flex;
+    position: relative;
+    z-index: 1;
 }
 .timeline{
     width: 100%;
-    height: 350px;
+    height: 100%;
+    border: 1px solid #e0e0e0;;
+    border-radius: 8px;
 }
 
 .marker-content {
+    position: absolute;
     font-size: small;
     align-self: end;
     text-wrap: nowrap;
     padding: 0 4px;
-    opacity: 0.5;
 }
+
 .tally-content{
     inset: 0;
     position: absolute;
@@ -189,10 +193,50 @@
     border-bottom-color: #63cc07;
 }
 
-:deep(.status-student-reviewed) {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    min-height: 30px !important;
-    border-bottom-color: #856404;
+:deep(.status-defence-date) {
+    width: auto !important;
+    height: 28px !important;
+    min-width: 60px !important;
+    min-height: 28px !important;
+    border-radius: 16px !important;
+    padding: 0 12px !important;
+    background-color: #dc3545;
+}
+
+.action-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    margin-right: 0.5rem;
+}
+
+.preview-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.preview-btn:hover {
+    background-color: #0056b3;
+}
+
+.checklist-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.checklist-btn:hover {
+    background-color: #218838;
+}
+
+.comment-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.comment-btn:hover {
+    background-color: #5a6268;
 }

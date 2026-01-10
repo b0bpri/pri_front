@@ -182,6 +182,10 @@ import '@vuepic/vue-datepicker/dist/main.css';
                 :min-date="new Date()"
                 :formats="{ input: 'dd.MM.yyyy - HH:mm', preview: 'dd.MM.yyyy - HH:mm' }"/>
           </div>
+          <div class="mb-3">
+            <label for="defenseComment" class="form-label">Komentarz:</label>
+            <textarea id="defenseComment" class="form-control" v-model="defenseComment" rows="2"></textarea>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
@@ -231,6 +235,8 @@ import axios from 'axios';
 import authStore from '/src/stores/authStore.js';
 import { Modal } from 'bootstrap';
 import '../css/GroupsPanel.css';
+import { pushNotification, pushPromiseNotification } from '/src/components/NotivueNotification.vue';
+
 
 export default {
   name: 'GroupsPanel',
@@ -252,7 +258,8 @@ export default {
       gradeModal: null,
       gradeModalMessage: '',
       gradeModalError: false,
-      date: null
+      date: null,
+      defenseComment: ''
     };
   },
   computed: {
@@ -738,6 +745,10 @@ export default {
     async saveDefenseDate(group) {
       console.log('Saving defense date for group:', group.project_id);
 
+      const closeButton = document.querySelector('#defenseDateModal [data-bs-dismiss="modal"]');
+      if (closeButton) {
+        closeButton.click(); // This will trigger Bootstrap's native modal close
+      }
       if (!this.isPromoter || !group || !group.project_id) {
         return;
       }
@@ -774,17 +785,23 @@ export default {
         const response = await axios.post(url, {
           chapter_id: group.thesis_id,
           date: adjustedDate.toISOString(),
-          comment: 'test'
+          comment: 'this.defenseComment'
         });
+        await pushPromiseNotification(response, 'Zapisywanie daty obrony...', 'Data obrony została zapisana', 'Wystąpił błąd podczas zapisywania daty obrony');
+
         console.log('Response data:', response.data);
         console.log('FormData contains:', {
           chapter_id: group.thesis_id,
           date: adjustedDate.toISOString(),
-          comment: 'test'
+          comment: 'this.defenseComment'
         });
+
+        // Clear the form
+        this.date = null;
+        this.defenseComment = '';
         // Refresh the groups list to show the updated defense date
         await this.fetchGroups();
-        
+
         // Close the modal
         const modal = Modal.getInstance(document.getElementById('defenseDateModal'));
         if (modal) {
