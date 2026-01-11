@@ -37,17 +37,25 @@ const fetchTimeline = async () => {
 
     const defenceDateResponse = await axios.get(`/api/v1/chapter/getDefence/${props.thesisId}`);
     console.log('Defence date response:', defenceDateResponse.data);
-    if (!defenceDateResponse.data) {
-      console.error('No defence date data returned for thesis ID:', props.thesisId);
+    if (defenceDateResponse.status === 200 || defenceDateResponse.status === 304) {
+      if (defenceDateResponse.data === null) {
+      console.log('Defence date not yet set for this thesis group');
+      }
+      else {
+        defenceDateData.value = defenceDateResponse.data;
+        console.log('Defence date data:', defenceDateResponse.data);
+      }
+    }
+    else {
+      console.error('Could not retrieve defence date for thesis ID:', props.thesisId);
       error.value = 'No defence date data available';
-      return;
     }
     
     timelineData.value = response.data;
     console.log('Timeline data loaded:', timelineData.value);
     defenceDateData.value = defenceDateResponse.data;
     console.log('Defence date data loaded:', defenceDateData.value);
-    
+
     // After data is loaded, process it
     if (timelineData.value) {
       processDataEntries();
@@ -234,11 +242,15 @@ function groupExistsAlready(array_to_check, item_id){
 function displayItemInformation(event) {
   // Check if timeline event exists and if it has data
   if (event && event.item) {
+    matched_json_chapter.value = null;
+    matched_json_version.value = null;
     selectedItem.value = event.item;
     console.log('Event item is: ', event.item);
     console.log('Event item start is: ', event.item.start);
     //Find JSON entry which matches timeline event
-    matchChapterAndVersion(event.item.id, event.item.start);
+    if (event.item.className !== 'status-defence-date'){
+      matchChapterAndVersion(event.item.id, event.item.start);
+    }
   }
 }
 
@@ -249,7 +261,7 @@ function goBack() {
 const timelineRange = computed(() => {
   const currentYear = new Date().getFullYear();
   let beginningDate = new Date(currentYear - 1, 9, 1).getTime();
-  let endingDate = new Date(currentYear, 2, 28).getTime();
+  let endingDate = new Date(currentYear, 5, 30).getTime();
 
   if (dateFlag.value) {
     const entryYear = new Date(dateFlag.value).getFullYear();
@@ -257,16 +269,18 @@ const timelineRange = computed(() => {
 
     if (entryMonth < 4) {
       beginningDate = new Date(entryYear - 1, 9, 1).getTime();
-      endingDate = new Date(entryYear, 1, 28).getTime();
-    } else {
+      endingDate = new Date(entryYear, 5, 30).getTime();
+    }
+    else {
       beginningDate = new Date(entryYear, 9, 1).getTime();
-      endingDate = new Date(entryYear + 1, 1, 28).getTime();
+      endingDate = new Date(entryYear + 1, 5, 30).getTime();
     }
   }
   //console.log('Beginning date is: ', beginningDate);
   //console.log('Ending date is: ', endingDate);
   return [beginningDate, endingDate];
 });
+const initialViewportRange = ref({ start: timelineRange.value[0], end: new Date(new Date(timelineRange.value[1]).setMonth(new Date(timelineRange.value[1]).getMonth() - 4, 28)).getTime() });
 const viewport = ref({ start: timelineRange.value[0], end: timelineRange.value[1] });
 const maxRange = ref({ start: timelineRange.value[0], end: timelineRange.value[1] });
 const viewportSize = computed(() => viewport.value.end - viewport.value.start);
@@ -305,17 +319,56 @@ onMounted(async () => {
 <template>
   <div class="wrapper">
     <!-- Back button for promoters only - separate container -->
-    <div v-if="authStore.isPromoter" class="back-btn-container">
-      <button class="back-btn-external" @click="goBack">
-        <span>←</span>
-        Powrót
-      </button>
-    </div>
-    <div>
-      <!-- Other content -->
-      <ToggleTextBox
-          content="This is some helpful information that appears when you click the button."
-      />
+    <div style="display: flex; margin-right: 2rem; background-color: #000000;">
+      <div v-if="authStore.isPromoter" class="back-btn-container">
+        <button class="back-btn-external" @click="goBack">
+          <span>←</span>
+          Powrót
+        </button>
+      </div>
+
+      <div style="position: absolute;
+            top: 2rem;
+            left: calc(50% + 850px);
+            z-index: 10;">
+        <!-- Other content -->
+        <ToggleTextBox
+            :content="`
+              <div style='padding: 1rem;'>
+                <p>Tutaj możesz zobaczyć szczegóły przebiegu pracy dyplomowej na przestrzeni czasu.</p>
+                <p>Legenda obiektów wyświetlanych na osi czasu:</p>
+
+                <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
+                  <!-- Supervisor -->
+                  <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                    <div class='status-supervisor' style='display: flex; opacity: 0.6; font-size: 13px; align-items: center; justify-content: center; color: white;'>x/y</div>
+                    <span>Odpowiedź od promotora, gdzie x/y oznacza ilość zdobytych punktów</span>
+                  </div>
+
+                  <!-- Student - Pending -->
+                  <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                    <div class='status-student-pending' style='opacity: 0.6;'></div>
+                    <span>Wersja rozdziału studenta czekająca na ocene</span>
+                  </div>
+
+                  <!-- Student - Reviewed -->
+                  <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                    <div class='status-student-reviewed' style='opacity: 0.6;'></div>
+                    <span>Oceniona wersja rodziału studenta</span>
+                  </div>
+
+                  <!-- Defence Date -->
+                  <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                    <div class='status-defence-date' style='display: flex; opacity: 0.6; font-size: 13px; align-items: center; justify-content: center; color: white;'>*Data*</div>
+                    <span>Data obrony pracy dyplomowej</span>
+                  </div>
+                </div>
+
+                <p style='margin-top: 0.5rem;'>Każdy z obiektów na osi czasu może zostać kliknięty aby wyświetlić o nim sczegóły.</p>
+              </div>
+            `"
+        />
+      </div>
     </div>
     <div class="card timeline-card">
       <Timeline
@@ -323,8 +376,10 @@ onMounted(async () => {
           class="timeline"
           :groups="groups"
           :items="items"
-          :viewportMin="timelineRange[0]"
-          :viewportMax="timelineRange[1]"
+          :viewportMin="maxRange.start"
+          :viewportMax="maxRange.end"
+          :initialViewportStart="initialViewportRange.start"
+          :initialViewportEnd="initialViewportRange.end"
           :markers="markers"
           @mousemoveTimeline="onMousemoveTimeline"
           @mouseleaveTimeline="onMouseleaveTimeline"
@@ -342,7 +397,7 @@ onMounted(async () => {
           </div>
         </template>
       </Timeline>
-      <div>
+      <div style="margin-top: 0.3rem">
         <button class="action-btn preview-btn" @click="viewport.start > maxRange.start && timelineRef.setViewport(viewport.start - viewportSize * 0.2, viewport.end - viewportSize * 0.2)">
           Move left
         </button>
@@ -361,22 +416,31 @@ onMounted(async () => {
       </div>
     </div>
   
-  <div class="info-card" v-if="matched_json_chapter && matched_json_version">
-    <div class="selected-item">
-      <p><strong>Selected Chapter:</strong> {{ matched_json_chapter.name }}</p>
-      <p><strong>Author:</strong> {{ matched_json_chapter.author.user_data_first_name }} {{ matched_json_chapter.author.user_data_last_name }}</p>
-      <p><strong>Email:</strong> {{ matched_json_chapter.author.user_data_email }}</p>
+    <div class="info-card" v-if="matched_json_chapter && matched_json_version">
+      <div class="selected-item">
+        <h4><strong>Wybrany rozdział:</strong> {{ matched_json_chapter.name }}</h4>
+        <p><strong>Autor:</strong> {{ matched_json_chapter.author.user_data_first_name }} {{ matched_json_chapter.author.user_data_last_name }}</p>
+        <p><strong>Email:</strong> {{ matched_json_chapter.author.user_data_email }}</p>
 
         <div>
-          <p><strong>Uploaded on:</strong> {{ new Date(new Date(matched_json_version.upload_date_time).getTime() + 7200000).toISOString().replace('T', ' ').split('.')[0]  }}</p>
-          <p><strong>Uploaded by:</strong> {{ matched_json_version.uploader.user_data_first_name }} {{ matched_json_version.uploader.user_data_last_name }}</p>
-          <p v-if="matched_json_version.uploader.user_data_id == timelineData.supervisor_user_data_id"><strong>Checklist Tally:</strong> {{ matched_json_version.checklist_tally.resolved + '/' + matched_json_version.checklist_tally.total }}</p>
-          <p v-if="matched_json_version.supervisor_comment  !== 'n/a'"><strong>Supervisor Comment:</strong> {{ matched_json_version.supervisor_comment }}</p>
-          <p v-if="matched_json_version.file_link"><a :href="matched_json_version.file_link" target="_blank">File Link</a></p>
+          <h4><strong>Sczegóły pracy:</strong></h4>
+          <p><strong>Wysłany w:</strong> {{ new Date(new Date(matched_json_version.upload_date_time).getTime() + 7200000).toISOString().replace('T', ' ').split('.')[0]  }}</p>
+          <p><strong>Wysłany przez:</strong> {{ matched_json_version.uploader.user_data_first_name }} {{ matched_json_version.uploader.user_data_last_name }}</p>
+          <p v-if="matched_json_version.uploader.user_data_id === timelineData.supervisor_user_data_id"><strong>Punktacja checklisty:</strong> {{ matched_json_version.checklist_tally.resolved + '/' + matched_json_version.checklist_tally.total }}</p>
+          <p v-if="matched_json_version.supervisor_comment  !== 'n/a'"><strong>Komentarz promotora:</strong> {{ matched_json_version.supervisor_comment }}</p>
+          <p v-if="matched_json_version.file_link"><a :href="matched_json_version.file_link" target="_blank">Link do pliku</a></p>
         </div>
       </div>
     </div>
+    <div class="info-card" v-if="selectedItem && selectedItem.className === 'status-defence-date'">
+      <div class="selected-item">
+        <h4><strong>Obrona Placy Dyplomowej</strong></h4>
+        <p><strong>Data obrony:</strong> {{ new Date(selectedItem.start).toLocaleDateString() }}</p>
+        <p v-if="selectedItem.comment"><strong>Komentarz promotora:</strong> {{ selectedItem.comment }}</p>
+      </div>
+    </div>
   </div>
+
 </template>
 
 <style scoped src="../css/Timeline.css"></style>

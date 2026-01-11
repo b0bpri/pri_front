@@ -34,6 +34,7 @@
 }
 
 .header-container {
+    background-color: #000000;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -140,8 +141,6 @@
 .timeline:deep(.marker) {
     contain: unset;
     display: flex;
-    position: relative;
-    z-index: 1;
 }
 .timeline{
     width: 100%;
@@ -151,7 +150,6 @@
 }
 
 .marker-content {
-    position: absolute;
     font-size: small;
     align-self: end;
     text-wrap: nowrap;
@@ -173,6 +171,8 @@
     height: 30px !important;
     min-width: 30px !important;
     min-height: 30px !important;
+    background-color: #007bff;
+    border-radius: 50%;
 }
 
 :deep(.status-student-pending) {

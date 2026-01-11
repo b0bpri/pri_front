@@ -15,7 +15,7 @@
         @mouseleave="startHideTimer"
         @transitionend="onTransitionEnd"
     >
-      <p>{{ content }}</p>
+      <div class="text-content" v-html="content"></div>
     </div>
   </div>
 </template>
