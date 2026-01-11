@@ -13,7 +13,7 @@
 .back-btn-container {
     position: absolute;
     top: 2rem;
-    left: calc(50% + 710px);
+    left: calc(50% + 755px);
     z-index: 10;
 }
 

@@ -329,8 +329,9 @@ onMounted(async () => {
 
       <div style="position: absolute;
             top: 2rem;
-            left: calc(50% + 850px);
-            z-index: 10;">
+            left: calc(50% + 745px);
+            z-index: 10;
+            ">
         <!-- Other content -->
         <ToggleTextBox
             :content="`
