@@ -1249,12 +1249,45 @@ export default {
       return 'Brak Nazwy';
     },
 
-    previewFile(file) {
+    async previewFile(file) {
       console.log('Previewing file:', file);
       if (file.link) {
         window.open(file.link, '_blank');
       } else if (file.id) {
-        window.open(`/api/v1/download/${file.id}`, '_blank');
+        try {
+          // Get JWT tokren from auth store
+          const token = authStore.token;
+          if (!token) {
+            this.errorMessage = 'Brak tokena autoryzacji. Zaloguj się ponownie.';
+            console.error('No JWT token available');
+            return;
+          }
+
+          // Download file with authorization header
+          const response = await axios.get(`/api/v1/download/${file.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            responseType: 'blob' 
+          });
+
+          // Create a URL and open it in a new tab
+          const blob = new Blob([response.data], { 
+            type: response.headers['content-type'] || 'application/octet-stream' 
+          });
+          const url = window.URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          
+          // Optionally release memory after some time
+          setTimeout(() => window.URL.revokeObjectURL(url), 100);
+        } catch (error) {
+          console.error('Error previewing file:', error);
+          if (error.response && error.response.status === 401) {
+            this.errorMessage = 'Brak autoryzacji. Zaloguj się ponownie.';
+          } else {
+            this.errorMessage = 'Nie można otworzyć pliku - błąd pobierania.';
+          }
+        }
       } else {
         this.errorMessage = 'Nie można otworzyć pliku - brak linku.';
       }
