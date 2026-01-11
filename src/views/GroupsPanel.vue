@@ -10,7 +10,10 @@ import '@vuepic/vue-datepicker/dist/main.css';
   <div class="groups-container">
     <div class="page-header">
       <h1 class="page-title">Grupy projektowe</h1>
-      <button v-if="isPromoter" class="reload-groups-btn" @click="reloadGroups">
+      <button v-if="isPromoter" 
+              class="reload-groups-btn" 
+              @click="showReloadConfirmation"
+              title="Przycisk ten przeładuje grupy i usunie ich aktualny stan">
         <i class="icon-reload"></i> Odśwież grupy
       </button>
     </div>
@@ -228,6 +231,33 @@ import '@vuepic/vue-datepicker/dist/main.css';
       </div>
     </div>
   </div>
+
+  <!-- Reload Groups Confirmation Modal -->
+  <div class="modal fade" id="reloadConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Potwierdzenie przeładowania grup</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-warning">
+            <i class="icon-warning"></i> <strong>Uwaga!</strong> Ta operacja jest nieodwracalna.
+          </div>
+          <p><strong>Przeładowanie grup spowoduje:</strong></p>
+          <ul>
+            <li>Zresetowanie statusu prac do stanu początkowego</li>
+            <li>Zachowanie struktury grup projektowych</li>
+          </ul>
+          <p class="text-danger"><strong>Wszystkie dane dotyczące aktualnego stanu prac zostaną usunięte!</strong></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+          <button type="button" class="btn btn-danger" @click="confirmReloadGroups">Potwierdź przeładowanie</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -259,7 +289,8 @@ export default {
       gradeModalMessage: '',
       gradeModalError: false,
       date: null,
-      defenseComment: ''
+      defenseComment: '',
+      reloadConfirmModal: null
     };
   },
   computed: {
@@ -920,9 +951,25 @@ export default {
       });
     },
     
-    async reloadGroups() {
+    showReloadConfirmation() {
       if (!this.isPromoter) {
         return;
+      }
+      
+      if (!this.reloadConfirmModal) {
+        this.reloadConfirmModal = new Modal(document.getElementById('reloadConfirmModal'));
+      }
+      this.reloadConfirmModal.show();
+    },
+    
+    async confirmReloadGroups() {
+      if (!this.isPromoter) {
+        return;
+      }
+      
+      // Close the modal
+      if (this.reloadConfirmModal) {
+        this.reloadConfirmModal.hide();
       }
       
       try {

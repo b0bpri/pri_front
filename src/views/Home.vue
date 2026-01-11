@@ -27,6 +27,7 @@
       </form>
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       
+      <!-- SZYBKIE LOGOWANIE - ZAKOMENTOWANE
       <div class="divider">
         <span>LUB SZYBKIE LOGOWANIE</span>
       </div>
@@ -40,6 +41,7 @@
         <button class="role-btn alt-btn" @click="loginAsAlternateStudent">Zaloguj jako Student: Katarzyna Strzyżewska</button>
         <button class="role-btn alt-btn" @click="loginAsAlternatePromoter">Zaloguj jako Promotor: Marcin Szczepański</button>
       </div>
+      -->
     </div>
   </div>
 </template>
@@ -100,8 +102,9 @@ export default {
         console.error('Login error:', error);
         this.errorMessage = error.response?.data?.message || 'Nie udało się zalogować. Sprawdź dane logowania.';
       }
-    },
+    }
 
+    /* SZYBKIE LOGOWANIE - ZAKOMENTOWANE
     async loginAsStudent() {
       this.errorMessage = '';
       authStore.setUser(false, 30, 'Tomasz', 'Wasyłyk');
@@ -141,6 +144,7 @@ export default {
       clearRouterCache();
       this.router.push('/groups-panel');
     }
+    */
   }
 };
 </script>

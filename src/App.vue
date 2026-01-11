@@ -21,8 +21,6 @@ export default {
 </script>
 
 
-//changes
-
 <style>
 body {
   margin: 0;
