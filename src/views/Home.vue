@@ -61,6 +61,12 @@ export default {
       errorMessage: ''
     };
   },
+  created() {
+    console.log('========================================');
+    console.log('🚀 FRONTEND VERSION CHECK - Home.vue');
+    console.log('✅ Nowa wersja z poprawkami JWT - 2026-01-12 - v1.0.2');
+    console.log('========================================');
+  },
   setup() {
     const router = useRouter();
     return { router };
