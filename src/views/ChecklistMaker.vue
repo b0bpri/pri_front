@@ -58,7 +58,7 @@
         <div class="questions-section">
           <div class="questions-header">
             <h3>Pytania w checklist</h3>
-            <button class="btn btn-secondary" @click="addQuestion">
+            <button v-if="isEditing" class="btn btn-secondary" @click="addQuestion">
               <i class="icon-plus"></i> Dodaj pytanie
             </button>
           </div>
@@ -207,6 +207,7 @@ export default {
       // Questions data
       questions: [],
       questionCounter: 0,
+      isEditing: false, // Track if template is being edited
       
       // Modal state
       showDeleteConfirmation: false,
@@ -253,9 +254,19 @@ export default {
         console.log(`Loaded ${this.templateType} template:`, response.data);
         
         this.existingTemplate = response.data || [];
+        
+        // Reset editing state when switching templates
+        this.questions = [];
+        this.questionCounter = 0;
+        this.isEditing = false;
+        
       } catch (error) {
         console.error('Error loading template:', error);
         this.existingTemplate = [];
+        // Reset editing state on error too
+        this.questions = [];
+        this.questionCounter = 0;
+        this.isEditing = false;
         // Don't show error message if template doesn't exist yet
         if (error.response?.status !== 404) {
           this.errorMessage = 'Nie udało się załadować istniejącego szablonu.';
@@ -270,6 +281,7 @@ export default {
         text: text
       }));
       this.questionCounter += this.existingTemplate.length;
+      this.isEditing = true;
       
       this.successMessage = 'Szablon załadowany do edycji.';
       setTimeout(() => {
@@ -411,6 +423,7 @@ export default {
         // Clear editor after successful save
         this.questions = [];
         this.questionCounter = 0;
+        this.isEditing = false;
         
         setTimeout(() => {
           this.successMessage = '';
@@ -430,6 +443,7 @@ export default {
     clearTemplate() {
       this.questions = [];
       this.questionCounter = 0;
+      this.isEditing = false;
     }
   }
 };
