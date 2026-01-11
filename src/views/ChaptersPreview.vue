@@ -1255,21 +1255,25 @@ export default {
         window.open(file.link, '_blank');
       } else if (file.id) {
         try {
-          // Get JWT tokren from auth store
+          // Get JWT token from auth store
           const token = authStore.token;
+          console.log('Token available:', !!token, 'Token length:', token ? token.length : 0);
+          
           if (!token) {
             this.errorMessage = 'Brak tokena autoryzacji. Zaloguj się ponownie.';
             console.error('No JWT token available');
             return;
           }
 
-          // Download file with authorization header
+          console.log('Fetching file from:', `/api/v1/download/${file.id}`);
+          
+          // Download file with authorization header (interceptor should add it automatically)
           const response = await axios.get(`/api/v1/download/${file.id}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            },
             responseType: 'blob' 
           });
+
+          console.log('File downloaded successfully. Content-Type:', response.headers['content-type']);
+          console.log('Response size:', response.data.size);
 
           // Create a URL and open it in a new tab
           const blob = new Blob([response.data], { 
@@ -1282,10 +1286,16 @@ export default {
           setTimeout(() => window.URL.revokeObjectURL(url), 100);
         } catch (error) {
           console.error('Error previewing file:', error);
+          console.error('Error response:', error.response);
+          console.error('Error status:', error.response?.status);
+          console.error('Error data:', error.response?.data);
+          
           if (error.response && error.response.status === 401) {
-            this.errorMessage = 'Brak autoryzacji. Zaloguj się ponownie.';
+            this.errorMessage = 'Brak autoryzacji. Token wygasł lub jest nieprawidłowy. Zaloguj się ponownie.';
+            pushNotification('Sesja wygasła. Zaloguj się ponownie.', 'error');
           } else {
-            this.errorMessage = 'Nie można otworzyć pliku - błąd pobierania.';
+            this.errorMessage = `Nie można otworzyć pliku - błąd ${error.response?.status || 'pobierania'}.`;
+            pushNotification('Błąd podczas pobierania pliku.', 'error');
           }
         }
       } else {
