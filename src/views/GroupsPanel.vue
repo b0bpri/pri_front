@@ -655,8 +655,37 @@ export default {
     },
 
 
-    showThesisDefenseModal(group) {
+    async showThesisDefenseModal(group) {
       this.selectedGroup = group;
+      this.date = null;
+      this.defenseComment = '';
+      
+      // Load existing defense date and comment if available
+      if (group.thesis_id) {
+        try {
+          console.log('Fetching defense data for thesis_id:', group.thesis_id);
+          const response = await axios.get(`/api/v1/chapter/getDefence/${group.thesis_id}`);
+          console.log('Defense data response:', response.data);
+          
+          if (response.data) {
+            if (response.data.date) {
+              this.date = new Date(response.data.date);
+              console.log('Loaded defense date:', this.date);
+            }
+            if (response.data.comment) {
+              this.defenseComment = response.data.comment;
+              console.log('Loaded defense comment:', this.defenseComment);
+            }
+          }
+        } catch (error) {
+          if (error.response && error.response.status !== 404) {
+            console.error('Błąd podczas pobierania danych obrony:', error);
+          } else {
+            console.log('No defense data found (404)');
+          }
+        }
+      }
+      
       const modal = new Modal(document.getElementById('defenseDateModal'));
       modal.show();
     },
@@ -816,7 +845,7 @@ export default {
         const response = await axios.post(url, {
           chapter_id: group.thesis_id,
           date: adjustedDate.toISOString(),
-          comment: 'this.defenseComment'
+          comment: this.defenseComment
         });
         await pushPromiseNotification(response, 'Zapisywanie daty obrony...', 'Data obrony została zapisana', 'Wystąpił błąd podczas zapisywania daty obrony');
 
@@ -824,7 +853,7 @@ export default {
         console.log('FormData contains:', {
           chapter_id: group.thesis_id,
           date: adjustedDate.toISOString(),
-          comment: 'this.defenseComment'
+          comment: this.defenseComment
         });
 
         // Clear the form
@@ -838,11 +867,6 @@ export default {
         if (modal) {
           modal.hide();
         }
-        
-        this.successMessage = 'Data obrony została zapisana pomyślnie.';
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
 
       } catch (error) {
         console.error('Error saving defense date:', error);
