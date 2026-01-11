@@ -1308,13 +1308,10 @@ export default {
         if (error.response && error.response.status === 401) {
           this.errorMessage = 'Brak autoryzacji. Token wygasł lub jest nieprawidłowy. Zaloguj się ponownie.';
           pushNotification('Sesja wygasła. Zaloguj się ponownie.', 'error');
-          } else {
-            this.errorMessage = `Nie można otworzyć pliku - błąd ${error.response?.status || 'pobierania'}.`;
-            pushNotification('Błąd podczas pobierania pliku.', 'error');
-          }
+        } else {
+          this.errorMessage = `Nie można otworzyć pliku - błąd ${error.response?.status || 'pobierania'}.`;
+          pushNotification('Błąd podczas pobierania pliku.', 'error');
         }
-      } else {
-        this.errorMessage = 'Nie można otworzyć pliku - brak linku.';
       }
     },
 
