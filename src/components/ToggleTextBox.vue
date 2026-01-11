@@ -5,7 +5,7 @@
         @click="toggleText"
         @mouseenter="cancelHideTimer"
     >
-      &#9432
+      &#9432;
     </button>
     <div
         v-show="isVisible"

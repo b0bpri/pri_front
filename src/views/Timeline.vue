@@ -444,3 +444,9 @@ onMounted(async () => {
 </template>
 
 <style scoped src="../css/Timeline.css"></style>
+<style scoped>
+:deep(.toggle-button) {
+  padding-bottom: 0.15em !important;
+  line-height: 0.9 !important;
+}
+</style>
