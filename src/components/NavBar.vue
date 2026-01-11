@@ -1,6 +1,6 @@
 <template>
   <div class="layout-container">
-    <!-- Sidebar Menu - only for promoters -->
+    <!-- SIDEBAR for Promoter
     <div
       v-if="authStore.isPromoter"
       ref="sidebar"
@@ -31,34 +31,54 @@
         </ul>
       </div>
     </div>
+    -->
 
     <!-- Main content area -->
-    <div 
-      :class="['main-content', authStore.isPromoter && sidebarOpen ? 'sidebar-open' : '']"
-    >
+    <div class="main-content">
       <nav
         class="navbar navbar-expand-lg navbar-dark bg-primary px-3 shadow"
       >
-        <!-- Hamburger menu - only for promoters -->
+        <!-- HAMBURGER MENU Promoters
         <button v-if="authStore.isPromoter" class="btn btn-primary me-3" @click.stop="toggleSidebar">
           ☰
         </button>
+        -->
         <a class="navbar-brand fw-bold" href="#">PRI</a>
+
+        <!-- Promoter navigation tabs -->
+        <div v-if="authStore.isPromoter" class="nav-tabs-container ms-3 d-flex gap-4">
+          <a 
+            class="nav-tab" 
+            :class="{ 'active': isCurrentRoute('GroupsPanel') }"
+            @click.prevent="navigateToGroupsPanel"
+            href="#"
+          >
+            Panel grup
+          </a>
+          <a 
+            class="nav-tab" 
+            :class="{ 'active': isCurrentRoute('ChecklistMaker') }"
+            @click.prevent="navigateToChecklistMaker"
+            href="#"
+          >
+            Kreator checklist
+          </a>
+        </div>
 
         <!-- Student navigation tabs - only when thesis is accepted -->
         <div v-if="!authStore.isPromoter && isStudentThesisAccepted" class="nav-tabs-container ms-3 d-flex gap-4">
           <a 
             class="nav-tab" 
             :class="{ 'active': isCurrentRoute('ChaptersPreview') }"
-            @click="navigateToChapters"
+            @click.prevent="navigateToChapters"
             href="#"
           >
-            Przegląd wersji
+            Przegłąd wersji
           </a>
           <a 
             class="nav-tab" 
             :class="{ 'active': isCurrentRoute('Timeline') }"
-            @click="navigateToTimeline"
+            @click.prevent="navigateToTimeline"
             href="#"
           >
             Timeline
@@ -202,19 +222,31 @@ export default {
       }
     },
 
+    navigateToGroupsPanel() {
+      this.$router.push({ name: 'GroupsPanel' });
+    },
+
+    navigateToChecklistMaker() {
+      this.$router.push({ name: 'ChecklistMaker' });
+    },
+
     isCurrentRoute(routeName) {
       return this.$route.name === routeName;
     },
 
+    /* TOGGLE SIDEBAR 
     toggleSidebar() {
       this.sidebarOpen = !this.sidebarOpen;
     },
+    */
     logout() {
       authStore.logout();
       this.$router.push('/');
+      /* SIDEBAR 
       if (this.sidebarOpen) {
         this.toggleSidebar();
       }
+      */
     }
   }
 }
