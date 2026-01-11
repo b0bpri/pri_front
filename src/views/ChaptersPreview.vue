@@ -8,7 +8,37 @@
         </button>
         <div style="position: absolute; top: 1rem; right: 1rem; z-index: 1000; display: flex; gap: 0.5rem;">
           <ToggleTextBox
-              content="This is what the page is for."
+              :content="`
+                <div style='padding: 1rem;'>
+                  <p>Przegląd rozdziałów służy do przesyłania prac dyplomowych.</p>
+                  <p>By wysłać plik należy:</p>
+                  <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
+                    <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                      ${isPromoter ? '<span>Wybrać studenta poprzez box:</span>' : ''}
+                      ${isPromoter ? '<select class=><option displayed value=>-- wybierz --</option></select>' : ''}
+                    </div>
+                    <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                      <span>Wybrać plik poprzez:</span>
+                      <button style='border-radius: 0.5rem; opacity: 0.6;'>Browse...</button>
+                      <span>, lub wklejić link do pliku OneNote.</span>
+                    </div>
+                    <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                      <span>I przesłać go używając:</span>
+                      <button class='btn btn-primary file-btn' style='border-radius: 0.5rem; padding: 0.25rem 0.75rem;'>Do prac indiwidualnych</button>
+                      <span>lub</span>
+                      <button class='btn multi-author-btn' style='border-radius: 0.5rem; padding: 0.25rem 0.75rem; background-color: #6f42c1; color:white;'>Do prac wieloautorskich</button>
+                    </div>
+                  </div>
+                  <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
+                    <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                      ${!isPromoter ? '<p style=\'margin-top: 0.5rem;\'>Historia twojich prac dyplomowych pojawi się na dole strony, przy istnieniu przynajmniej jedej wersji.</p>': ''}
+                      ${isPromoter ? '<p style=\'margin-top: 0.5rem;\'>Historia wersji prac dyplomowych poszczególnego studenta może być wyświetlona na dole strony, po wybraniu studenta poprzez:</p>': ''}
+                      ${isPromoter ? '<select class=><option displayed value=>-- wybierz --</option></select>' : ''}
+                    </div>
+                  </div>
+
+                </div>
+              `"
           />
         </div>
       </div>
@@ -36,11 +66,9 @@
 
       <div class="upload-section" style="position: relative;">
         <h3>Prześlij materiały</h3>
+        <!--Unused ToggleTextBox location
         <div style="position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.5rem;">
-          <ToggleTextBox
-              content="Information about sending files."
-          />
-        </div>
+        </div> -->
         <!-- Information message for promoters who are not supervisors -->
         <div v-if="isPromoter && !isSupervisor" class="warning-message">
           <p>Nie jesteś promotorem tej grupy. Możesz przeglądać pliki, ale nie możesz przesyłać nowych plików ani komentować.</p>
@@ -123,8 +151,34 @@
           <th>Akcje
             <div style="position: relative; margin-top: -1.8rem; font-weight: normal;">
               <ToggleTextBox
-                  content="Information about the table and its actions."
+                  class="top-positioned"
+                  :content="`
+                    <div style='padding: 1rem;'>
+                      <p>Legenda akcji:</p>
 
+                      <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
+                        <!-- Preview -->
+                        <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                          <button class='action-btn preview-btn' style='border-radius: 0.5rem; border:none; padding: 0.25rem 0.75rem; background-color: #007bff; color:white; outline: none; box-shadow: none;'>Podgląd</button>
+                          <span>Podgląd wysłanej pracy dyplomowej.</span>
+                        </div>
+
+                        <!-- Checklist -->
+                        <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                          <button class='action-btn checklist-btn' style='border-radius: 0.5rem; border:none; padding: 0.25rem 0.75rem; background-color: #28a745; color:white; outline: none; box-shadow: none;'>Checklista</button>
+                          <span>Wyświetla checkliste, czyli zestaw cech pracy dyplomowej wymaganych w tym roku akademickim.</span>
+                        </div>
+
+                        <!-- Comment -->
+                        <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                          <button class='action-btn comment-btn' style='border-radius: 0.5rem; border:none; padding: 0.25rem 0.75rem; background-color: #6c757d; color:white; outline: none; box-shadow: none;'>Komentarz</button>
+                          <span>Wyświetla komentarz nadany przez promotora.</span>
+                        </div>
+                      </div>
+
+                      <p style='margin-top: 0.5rem;'>Każdy z obiektów na osi czasu może zostać kliknięty aby wyświetlić o nim sczegóły.</p>
+                    </div>
+                  `"
               />
             </div>
           </th>

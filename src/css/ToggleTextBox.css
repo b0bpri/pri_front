@@ -47,3 +47,11 @@
   opacity: 0;
   pointer-events: none;
 }
+
+.toggle-container.top-positioned .text-box {
+  top: auto;
+  bottom: 0;
+  right: 100%;
+  left: auto;
+  margin-right: 10px;
+}
