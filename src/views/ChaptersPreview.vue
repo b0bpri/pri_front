@@ -1806,44 +1806,32 @@ export default {
 
         console.log('Found chapters for students:', studentChapterIds);
 
-        // Prepare request body for each student
-        const promises = selectedStudentIds.map(async (studentId) => {
-          const studentChapter = chapters.find(chapter => chapter.owner_id === Number(studentId));
-          if (!studentChapter) {
-            throw new Error(`No chapter found for student ${studentId}`);
-          }
+        // Build single request with multiple chapter IDs
+        const chapterIdsParam = studentChapterIds.join(',');
+        const apiUrl = `/api/v1/chapter/addVersionWithLink?chapterIds=${chapterIdsParam}`;
+        
+        // Use first student as owner_user_data_id
+        const linkData = {
+          owner_user_data_id: selectedStudentIds[0],
+          uploader_user_data_id: uploaderId,
+          link: this.oneNoteLink
+        };
 
-          const linkData = {
-            owner_user_data_id: Number(studentId),
-            uploader_user_data_id: uploaderId,
-            link: this.oneNoteLink
-          };
+        console.log('Multi-author link request URL:', apiUrl);
+        console.log('Multi-author link data:', linkData);
+        console.log('Chapter IDs:', studentChapterIds);
 
-          const apiUrl = `/api/v1/chapter/addVersionWithLink?chapterIds=${studentChapter.id}`;
-          console.log('Multi-author link request URL:', apiUrl);
-          console.log('Multi-author link data:', linkData);
-
-          return axios.post(apiUrl, linkData, {
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            timeout: 30000
-          });
+        // Execute single request for all students
+        const response = await axios.post(apiUrl, linkData, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
         });
 
-        console.log('Executing', promises.length, 'API requests...');
+        console.log('Response received:', { status: response.status, data: response.data });
 
-        // Execute all requests
-        const responses = await Promise.all(promises);
-
-        console.log('All responses received:', responses.map(r => ({ status: r.status, data: r.data })));
-
-        // Check if all requests were successful
-        const allSuccessful = responses.every(response =>
-            response.status === 200 || response.status === 201
-        );
-
-        if (allSuccessful) {
+        if (response.status === 200 || response.status === 201) {
           this.uploadSuccess = true;
           this.errorMessage = '';
           this.oneNoteLink = '';
@@ -1855,9 +1843,10 @@ export default {
             await this.fetchStudentFiles();
           }
 
-          console.log('Multi-author OneNote links shared successfully');
+          pushNotification('Link OneNote został udostępniony pomyślnie dla wybranych studentów.', 'success');
+          console.log('Multi-author OneNote link shared successfully');
         } else {
-          throw new Error('Some requests failed');
+          throw new Error(`Server returned unexpected status: ${response.status}`);
         }
 
       } catch (error) {
