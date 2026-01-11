@@ -1251,48 +1251,63 @@ export default {
 
     async previewFile(file) {
       console.log('Previewing file:', file);
-      if (file.link) {
+      
+      // Check if this is an external link
+      const isExternalLink = file.link && !file.link.includes('/api/v1/download/');
+      
+      if (isExternalLink) {
+        // External links can be opened directly
         window.open(file.link, '_blank');
-      } else if (file.id) {
-        try {
-          // Get JWT token from auth store
-          const token = authStore.token;
-          console.log('Token available:', !!token, 'Token length:', token ? token.length : 0);
-          
-          if (!token) {
-            this.errorMessage = 'Brak tokena autoryzacji. Zaloguj się ponownie.';
-            console.error('No JWT token available');
-            return;
-          }
+        return;
+      }
+      
+      // For API download links or file IDs, we need to fetch with JWT token
+      const fileId = file.id || (file.link ? file.link.split('/').pop() : null);
+      
+      if (!fileId) {
+        this.errorMessage = 'Nie można otworzyć pliku - brak identyfikatora.';
+        return;
+      }
 
-          console.log('Fetching file from:', `/api/v1/download/${file.id}`);
-          
-          // Download file with authorization header (interceptor should add it automatically)
-          const response = await axios.get(`/api/v1/download/${file.id}`, {
-            responseType: 'blob' 
-          });
+      try {
+        // Get JWT token from auth store
+        const token = authStore.token;
+        console.log('Token available:', !!token, 'Token length:', token ? token.length : 0);
+        
+        if (!token) {
+          this.errorMessage = 'Brak tokena autoryzacji. Zaloguj się ponownie.';
+          console.error('No JWT token available');
+          pushNotification('Sesja wygasła. Zaloguj się ponownie.', 'error');
+          return;
+        }
 
-          console.log('File downloaded successfully. Content-Type:', response.headers['content-type']);
-          console.log('Response size:', response.data.size);
+        console.log('Fetching file from:', `/api/v1/download/${fileId}`);
+        
+        // Download file with authorization header (axios interceptor adds Bearer token)
+        const response = await axios.get(`/api/v1/download/${fileId}`, {
+          responseType: 'blob' 
+        });
 
-          // Create a URL and open it in a new tab
-          const blob = new Blob([response.data], { 
-            type: response.headers['content-type'] || 'application/octet-stream' 
-          });
-          const url = window.URL.createObjectURL(blob);
-          window.open(url, '_blank');
-          
-          // Optionally release memory after some time
-          setTimeout(() => window.URL.revokeObjectURL(url), 100);
-        } catch (error) {
-          console.error('Error previewing file:', error);
-          console.error('Error response:', error.response);
-          console.error('Error status:', error.response?.status);
-          console.error('Error data:', error.response?.data);
-          
-          if (error.response && error.response.status === 401) {
-            this.errorMessage = 'Brak autoryzacji. Token wygasł lub jest nieprawidłowy. Zaloguj się ponownie.';
-            pushNotification('Sesja wygasła. Zaloguj się ponownie.', 'error');
+        console.log('File downloaded successfully. Content-Type:', response.headers['content-type']);
+        console.log('Response size:', response.data.size);
+
+        // Create a local blob URL and open it in a new tab
+        const blob = new Blob([response.data], { 
+          type: response.headers['content-type'] || 'application/octet-stream' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        
+        // Release memory after opening
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      } catch (error) {
+        console.error('Error previewing file:', error);
+        console.error('Error response:', error.response);
+        console.error('Error status:', error.response?.status);
+        
+        if (error.response && error.response.status === 401) {
+          this.errorMessage = 'Brak autoryzacji. Token wygasł lub jest nieprawidłowy. Zaloguj się ponownie.';
+          pushNotification('Sesja wygasła. Zaloguj się ponownie.', 'error');
           } else {
             this.errorMessage = `Nie można otworzyć pliku - błąd ${error.response?.status || 'pobierania'}.`;
             pushNotification('Błąd podczas pobierania pliku.', 'error');
