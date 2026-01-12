@@ -251,7 +251,7 @@ export default {
           : '/api/v1/view/checklistTemplates/chapter/';
         
         const response = await axios.get(endpoint);
-        console.log(`Loaded ${this.templateType} template:`, response.data);
+        // console.log(`Loaded ${this.templateType} template:`, response.data);
         
         this.existingTemplate = response.data || [];
         
@@ -261,7 +261,7 @@ export default {
         this.isEditing = false;
         
       } catch (error) {
-        console.error('Error loading template:', error);
+        // console.error('Error loading template:', error);
         this.existingTemplate = [];
         // Reset editing state on error too
         this.questions = [];
@@ -405,7 +405,7 @@ export default {
         // Prepare array of question strings
         const questionsArray = this.questions.map(q => q.text.trim());
         
-        console.log(`Saving ${this.templateType} template with questions:`, questionsArray);
+        // console.log(`Saving ${this.templateType} template with questions:`, questionsArray);
         
         // Choose endpoint based on template type
         const endpoint = this.templateType === 'thesis' 
@@ -413,7 +413,7 @@ export default {
           : '/api/v1/post/chapterChecklistTemplate/';
         
         const response = await axios.post(endpoint, questionsArray);
-        console.log('Template save response:', response.data);
+        // console.log('Template save response:', response.data);
         
         this.successMessage = `Szablon dla ${this.templateType === 'thesis' ? 'pracy' : 'rozdziałów'} został zapisany!`;
         
@@ -430,7 +430,7 @@ export default {
         }, 3000);
         
       } catch (error) {
-        console.error('Error saving template:', error);
+        // console.error('Error saving template:', error);
         this.errorMessage = 'Nie udało się zapisać szablonu checklist.';
         if (error.response?.data) {
           this.errorMessage += ` (${error.response.data})`;

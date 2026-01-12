@@ -93,11 +93,11 @@ const getGroupsWithCache = async () => {
   const now = Date.now();
   
   if (cache.groups && (now - cache.groupsTimestamp < cache.CACHE_DURATION)) {
-    console.log('[Cache] Using cached groups');
+    // console.log('[Cache] Using cached groups');
     return cache.groups;
   }
   
-  console.log('[Cache] Fetching fresh groups');
+  // console.log('[Cache] Fetching fresh groups');
   try {
     const axios = (await import('axios')).default;
     const response = await axios.get('/api/v1/view/groups/all');
@@ -112,7 +112,7 @@ const getGroupsWithCache = async () => {
     cache.groupsTimestamp = now;
     return groups;
   } catch (error) {
-    console.error('[Cache] Error fetching groups:', error);
+    // console.error('[Cache] Error fetching groups:', error);
     return [];
   }
 };
@@ -124,11 +124,11 @@ const getThesisStatusWithCache = async (projectId) => {
   
   if (cache.thesisStatus[cacheKey] && 
       (now - (cache.thesisTimestamp[cacheKey] || 0) < cache.CACHE_DURATION)) {
-    console.log('[Cache] Using cached thesis status for project:', projectId);
+    // console.log('[Cache] Using cached thesis status for project:', projectId);
     return cache.thesisStatus[cacheKey];
   }
   
-  console.log('[Cache] Fetching fresh thesis status for project:', projectId);
+  // console.log('[Cache] Fetching fresh thesis status for project:', projectId);
   try {
     const axios = (await import('axios')).default;
     const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${projectId}`);
@@ -138,14 +138,14 @@ const getThesisStatusWithCache = async (projectId) => {
     cache.thesisTimestamp[cacheKey] = now;
     return status;
   } catch (error) {
-    console.warn('[Cache] Error fetching thesis status:', error);
+    // console.warn('[Cache] Error fetching thesis status:', error);
     return 'PENDING';
   }
 };
 
 // Function to clear cache
 export function clearRouterCache() {
-  console.log('[Cache] Clearing router cache');
+  // console.log('[Cache] Clearing router cache');
   cache.groups = null;
   cache.groupsTimestamp = 0;
   cache.thesisStatus = {};
@@ -173,17 +173,17 @@ router.beforeEach(async (to, from, next) => {
   // Small delay for authStore to initialize
   await new Promise(resolve => setTimeout(resolve, 50));
   
-  console.log('[Router Guard] Current auth state:', {
-    userId: authStore.userId,
-    isPromoter: authStore.isPromoter,
-    target: to.name
-  });
+  // console.log('[Router Guard] Current auth state:', {
+  //   userId: authStore.userId,
+  //   isPromoter: authStore.isPromoter,
+  //   target: to.name
+  // });
 
   // Allow access to home page for everyone
   if (to.name === 'Home') {
     // If logged in and trying to access Home, redirect to appropriate page
     if (authStore.userId) {
-      console.log('[Router Guard] Already logged in, redirecting from Home');
+      // console.log('[Router Guard] Already logged in, redirecting from Home');
       if (authStore.isPromoter) {
         next({ name: 'GroupsPanel' });
         return;
@@ -192,7 +192,7 @@ router.beforeEach(async (to, from, next) => {
         const studentGroup = await getStudentGroup(authStore);
         
         if (!studentGroup) {
-          console.log('[Router Guard] Student has no group, redirecting to NoGroup');
+          // console.log('[Router Guard] Student has no group, redirecting to NoGroup');
           next({ name: 'NoGroup' });
           return;
         }
@@ -203,7 +203,7 @@ router.beforeEach(async (to, from, next) => {
           const isThesisAccepted = thesisStatus === 'APPROVED';
 
           if (isThesisAccepted) {
-            console.log('[Router Guard] Student with accepted thesis, redirecting to ChaptersPreview');
+            // console.log('[Router Guard] Student with accepted thesis, redirecting to ChaptersPreview');
             next({ 
               name: 'ChaptersPreview', 
               params: { id: studentGroup.project_id.toString() },
@@ -212,7 +212,7 @@ router.beforeEach(async (to, from, next) => {
               }
             });
           } else {
-            console.log('[Router Guard] Student with non-accepted thesis, redirecting to Thesis');
+            // console.log('[Router Guard] Student with non-accepted thesis, redirecting to Thesis');
             next({ 
               name: 'Thesis', 
               params: { groupId: studentGroup.project_id.toString() },
@@ -243,14 +243,14 @@ router.beforeEach(async (to, from, next) => {
 
   // Check if user is logged in
   if (!authStore.userId) {
-    console.log('[Router Guard] Not logged in, redirecting to Home');
+    // console.log('[Router Guard] Not logged in, redirecting to Home');
     next({ name: 'Home' });
     return;
   }
 
   // Allow promoters to access all routes
   if (authStore.isPromoter) {
-    console.log('[Router Guard] Promoter access granted');
+    // console.log('[Router Guard] Promoter access granted');
     next();
     return;
   }
@@ -259,29 +259,29 @@ router.beforeEach(async (to, from, next) => {
   const studentGroup = await getStudentGroup(authStore);
   
   if (!studentGroup || !studentGroup.project_id) {
-    console.log('[Router Guard] Student has no group, blocking access to:', to.name);
+    // console.log('[Router Guard] Student has no group, blocking access to:', to.name);
     next({ name: 'NoGroup' });
     return;
   }
 
-  console.log('[Router Guard] Student belongs to group:', studentGroup.name);
+  // console.log('[Router Guard] Student belongs to group:', studentGroup.name);
   
   // Restrict ChecklistMaker to promoters only
   if (to.meta?.requiresPromoter && !authStore.isPromoter) {
-    console.log('[Router Guard] Route requires promoter, access denied');
+    // console.log('[Router Guard] Route requires promoter, access denied');
     next({ name: 'NoGroup' });
     return;
   }
   
   // Block students from accessing GroupsPanel directly
   if (to.name === 'GroupsPanel') {
-    console.log('[Router Guard] Student attempting to access GroupsPanel, redirecting based on thesis status');
+    // console.log('[Router Guard] Student attempting to access GroupsPanel, redirecting based on thesis status');
     
     const thesisStatus = await getThesisStatus(studentGroup.project_id);
     const isThesisAccepted = thesisStatus === 'APPROVED';
 
     if (isThesisAccepted) {
-      console.log('[Router Guard] Redirecting to ChaptersPreview');
+      // console.log('[Router Guard] Redirecting to ChaptersPreview');
       next({ 
         name: 'ChaptersPreview', 
         params: { id: studentGroup.project_id.toString() },
@@ -290,7 +290,7 @@ router.beforeEach(async (to, from, next) => {
         }
       });
     } else {
-      console.log('[Router Guard] Redirecting to Thesis');
+      // console.log('[Router Guard] Redirecting to Thesis');
       next({ 
         name: 'Thesis', 
         params: { groupId: studentGroup.project_id.toString() },
@@ -304,13 +304,13 @@ router.beforeEach(async (to, from, next) => {
   
   // Check for restricted views for students - Thesis access
   if (to.name === 'Thesis') {
-    console.log('[Router Guard] Student accessing Thesis, checking if thesis is accepted');
+    // console.log('[Router Guard] Student accessing Thesis, checking if thesis is accepted');
     
     const thesisStatus = await getThesisStatus(studentGroup.project_id);
     const isThesisAccepted = thesisStatus === 'APPROVED';
 
     if (isThesisAccepted) {
-      console.log('[Router Guard] Thesis accepted, redirecting to ChaptersPreview');
+      // console.log('[Router Guard] Thesis accepted, redirecting to ChaptersPreview');
       next({ 
         name: 'ChaptersPreview', 
         params: { id: studentGroup.project_id.toString() },
@@ -325,13 +325,13 @@ router.beforeEach(async (to, from, next) => {
   
   // Block students from accessing ChaptersPreview if thesis is not accepted
   if (to.name === 'ChaptersPreview') {
-    console.log('[Router Guard] Student accessing ChaptersPreview, checking if thesis is accepted');
+    // console.log('[Router Guard] Student accessing ChaptersPreview, checking if thesis is accepted');
     
     const thesisStatus = await getThesisStatus(studentGroup.project_id);
     const isThesisAccepted = thesisStatus === 'APPROVED';
 
     if (!isThesisAccepted) {
-      console.log('[Router Guard] Thesis not accepted, redirecting to Thesis view');
+      // console.log('[Router Guard] Thesis not accepted, redirecting to Thesis view');
       next({ 
         name: 'Thesis', 
         params: { groupId: studentGroup.project_id.toString() },
@@ -345,7 +345,7 @@ router.beforeEach(async (to, from, next) => {
   }
   
   // Default allow
-  console.log('[Router Guard] Access granted to:', to.name);
+  // console.log('[Router Guard] Access granted to:', to.name);
   next();
 });
 

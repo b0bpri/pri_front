@@ -24,37 +24,37 @@ const defenceDateData = ref(null);
 
 const fetchTimeline = async () => {
   try {
-    console.log('Fetching timeline for thesis ID:', props.thesisId);
+    // console.log('Fetching timeline for thesis ID:', props.thesisId);
     
     // Fetch the timeline using the thesis ID
     const response = await axios.get(`/api/v1/timeline/view/byThesisId/${props.thesisId}`);
-    console.log('Timeline response:', response.data);
+    // console.log('Timeline response:', response.data);
     if (!response.data) {
-      console.error('No timeline data returned for thesis ID:', props.thesisId);
+      // console.error('No timeline data returned for thesis ID:', props.thesisId);
       error.value = 'No timeline data available';
       return;
     }
 
     const defenceDateResponse = await axios.get(`/api/v1/chapter/getDefence/${props.thesisId}`);
-    console.log('Defence date response:', defenceDateResponse.data);
+    // console.log('Defence date response:', defenceDateResponse.data);
     if (defenceDateResponse.status === 200 || defenceDateResponse.status === 304) {
       if (defenceDateResponse.data === null) {
-      console.log('Defence date not yet set for this thesis group');
+      // console.log('Defence date not yet set for this thesis group');
       }
       else {
         defenceDateData.value = defenceDateResponse.data;
-        console.log('Defence date data:', defenceDateResponse.data);
+        // console.log('Defence date data:', defenceDateResponse.data);
       }
     }
     else {
-      console.error('Could not retrieve defence date for thesis ID:', props.thesisId);
+      // console.error('Could not retrieve defence date for thesis ID:', props.thesisId);
       error.value = 'No defence date data available';
     }
     
     timelineData.value = response.data;
-    console.log('Timeline data loaded:', timelineData.value);
+    // console.log('Timeline data loaded:', timelineData.value);
     defenceDateData.value = defenceDateResponse.data;
-    console.log('Defence date data loaded:', defenceDateData.value);
+    // console.log('Defence date data loaded:', defenceDateData.value);
 
     // After data is loaded, process it
     if (timelineData.value) {
@@ -62,7 +62,7 @@ const fetchTimeline = async () => {
     }
   } catch (err) {
     error.value = 'Failed to fetch timeline data';
-    console.error('Error fetching timeline:', err);
+    // console.error('Error fetching timeline:', err);
   }
 };
 
@@ -94,7 +94,7 @@ function onMouseleaveTimeline () {
 //Goes through acquired JSON and using pushItem and pushGroup, populates Vue Timeline Chart arrays. Is booted on app mount.
 function processDataEntries() {
   if (!timelineData.value) {
-    console.error('Timeline data is not available');
+    // console.error('Timeline data is not available');
     error.value = 'Timeline data is not available';
     return;
   }
@@ -187,7 +187,7 @@ function matchChapterAndVersion(combined_id, entry_date) {
   const [version_id, group_id] = combined_id.split('-');
   for (const chapter of timelineData.value.chapters) {
     if (chapter.author.user_data_id.toString() !== group_id) continue;
-    console.log('Chapter being checked:', chapter);
+    // console.log('Chapter being checked:', chapter);
 
     const version = chapter.versions.find(version =>
         version.id.toString() === version_id &&
@@ -201,10 +201,10 @@ function matchChapterAndVersion(combined_id, entry_date) {
     }
   }
 
-  console.log('Final match:', {
-    chapter: matched_json_chapter.value,
-    version: matched_json_version.value
-  });
+  // console.log('Final match:', {
+  //   chapter: matched_json_chapter.value,
+  //   version: matched_json_version.value
+  // });
 }
 //Populates the Vue Timeline Chart's 'items' array with entries
 function pushItem(items_array_ref, version_id, group_id, date, uploadedBy, comment, score, status) {
@@ -218,7 +218,7 @@ function pushItem(items_array_ref, version_id, group_id, date, uploadedBy, comme
     tally: score,
     className: status
   };
-  console.log('Adding item:', newItem);
+  // console.log('Adding item:', newItem);
   items_array_ref.value.push(newItem);
 }
 function itemExistsAlready(array_to_check, item_id, group_id){
@@ -230,10 +230,10 @@ function pushGroup (group_array_ref, student_id, name_of_student){
     id: student_id,
     label: name_of_student
   });
-  console.log('Adding group:', {
-    id: student_id,
-    label: name_of_student
-  });
+  // console.log('Adding group:', {
+  //   id: student_id,
+  //   label: name_of_student
+  // });
 }
 function groupExistsAlready(array_to_check, item_id){
   return array_to_check.value.some(item => item.id === `${item_id}`);
@@ -245,8 +245,8 @@ function displayItemInformation(event) {
     matched_json_chapter.value = null;
     matched_json_version.value = null;
     selectedItem.value = event.item;
-    console.log('Event item is: ', event.item);
-    console.log('Event item start is: ', event.item.start);
+    // console.log('Event item is: ', event.item);
+    // console.log('Event item start is: ', event.item.start);
     //Find JSON entry which matches timeline event
     if (event.item.className !== 'status-defence-date'){
       matchChapterAndVersion(event.item.id, event.item.start);
@@ -289,7 +289,7 @@ const viewportSize = computed(() => viewport.value.end - viewport.value.start);
 function assignStatus(supervisor_id, version_uploader_id, version_entry_id, version_upload_date) {
   if (isSupervisor(supervisor_id, version_uploader_id)) {return 'status-supervisor';}
   else {
-    console.log('Not a supervisor. The date I am looking for is: ', version_upload_date);
+    // console.log('Not a supervisor. The date I am looking for is: ', version_upload_date);
     return wasReviewed(version_entry_id, version_upload_date);
   }
 }
@@ -297,10 +297,10 @@ function assignStatus(supervisor_id, version_uploader_id, version_entry_id, vers
 function wasReviewed(version_entry_id, version_upload_date) {
   const supervisor_id = timelineData.value.supervisor_user_data_id;
   const timestamp = Date.parse(version_upload_date);
-  console.log('This is the date I am trying to find:', timestamp);
+  // console.log('This is the date I am trying to find:', timestamp);
   matchChapterAndVersion(version_entry_id, timestamp);
   if (matched_json_chapter.value && matched_json_version.value) {
-    console.log('I FOUND YOU, FAKER',matched_json_chapter.value, matched_json_version.value);
+    // console.log('I FOUND YOU, FAKER',matched_json_chapter.value, matched_json_version.value);
     return 'status-student-reviewed';
   }
   else {

@@ -226,7 +226,7 @@ export default {
     this.isSupervisor = false;
     this.canEditComment = false; // Will be updated after verification
     
-    console.log('Initializing supervisor status (will be verified from server)');
+    // console.log('Initializing supervisor status (will be verified from server)');
     
     // Verify supervisor status if user is a promoter
     if (this.isPromoter) {
@@ -251,7 +251,7 @@ export default {
       
       const projectId = this.$route.params.groupId;
       if (!projectId) {
-        console.warn('Cannot verify supervisor status: missing project ID');
+        // console.warn('Cannot verify supervisor status: missing project ID');
         // For safety, if we can't verify, we set supervisor status to false
         this.isSupervisor = false;
         this.canEditComment = false;
@@ -260,13 +260,13 @@ export default {
       }
       
       try {
-        console.log('Verifying if user is supervisor for project:', projectId);
+        // console.log('Verifying if user is supervisor for project:', projectId);
         // Use the groups/all endpoint to get all groups with their supervisors
         const response = await axios.get('/api/v1/view/groups/all');
         
         if (response.data && response.data.dtos && Array.isArray(response.data.dtos)) {
           const allGroups = response.data.dtos;
-          console.log('All groups data:', allGroups);
+          // console.log('All groups data:', allGroups);
           
           // Find the group with the matching project_id
           const targetGroup = allGroups.find(group => 
@@ -275,18 +275,18 @@ export default {
           );
           
           if (targetGroup) {
-            console.log('Found target group:', targetGroup);
+            // console.log('Found target group:', targetGroup);
             
             const supervisorId = targetGroup.supervisor?.id;
             const userId = Number(authStore.userId);
             
-            console.log('Group supervisor ID:', supervisorId, 'Current user ID:', userId);
+            // console.log('Group supervisor ID:', supervisorId, 'Current user ID:', userId);
             
             // Update supervisor status based on actual project data
             const isActualSupervisor = supervisorId === userId;
             
             if (this.isSupervisor !== isActualSupervisor) {
-              console.warn(`Supervisor status mismatch - URL param: ${this.isSupervisor}, Actual: ${isActualSupervisor}`);
+              // console.warn(`Supervisor status mismatch - URL param: ${this.isSupervisor}, Actual: ${isActualSupervisor}`);
               this.isSupervisor = isActualSupervisor;
               // Update canEditComment based on new supervisor status
               this.canEditComment = this.isPromoter && this.isSupervisor;
@@ -299,7 +299,7 @@ export default {
               }
             }
           } else {
-            console.warn('Group not found with project ID:', projectId);
+            // console.warn('Group not found with project ID:', projectId);
             this.isSupervisor = false;
             this.canEditComment = false;
             this.errorMessage = 'Grupa nie została znaleziona. Dostęp został ograniczony.';
@@ -308,12 +308,12 @@ export default {
             }, 5000);
           }
         } else {
-          console.warn('Unexpected response format from groups/all:', response.data);
+          // console.warn('Unexpected response format from groups/all:', response.data);
           this.isSupervisor = false;
           this.canEditComment = false;
         }
       } catch (error) {
-        console.error('Error verifying project supervisor:', error);
+        // console.error('Error verifying project supervisor:', error);
         // For safety, if we can't verify, we set supervisor status to false
         this.isSupervisor = false;
         this.canEditComment = false;
@@ -337,7 +337,7 @@ export default {
         
         try {
           const response = await axios.get(`/api/v1/thesis/byProjectId/${projectId}`);
-          console.log('Fetched thesis data:', response.data);
+          // console.log('Fetched thesis data:', response.data);
           
           this.thesis = {
             ...response.data,
@@ -355,7 +355,7 @@ export default {
           this.projectId = response.data.project_id;
         } catch (error) {
           if (error.response && error.response.status === 404) {
-            console.log('No thesis exists yet for this project. Need to create one first.');
+            // console.log('No thesis exists yet for this project. Need to create one first.');
             this.thesisId = null;
             this.projectId = projectId;
             this.thesis = {
@@ -368,12 +368,12 @@ export default {
             };
             this.errorMessage = 'Praca dyplomowa nie istnieje jeszcze w systemie. Możesz wprowadzić dane i zapisać, aby ją utworzyć.';
           } else {
-            console.error('Error details:', error.response ? error.response.data : error.message);
+            // console.error('Error details:', error.response ? error.response.data : error.message);
             throw error;
           }
         }
       } catch (error) {
-        console.error('Błąd przy pobieraniu pracy dyplomowej:', error);
+        // console.error('Błąd przy pobieraniu pracy dyplomowej:', error);
         this.errorMessage = 'Nie udało się pobrać danych pracy dyplomowej.';
       }
     },
@@ -405,9 +405,9 @@ export default {
           try {
             const thesisResponse = await axios.get(`/api/v1/thesis/byProjectId/${projectId}`);
             currentServerData = thesisResponse.data;
-            console.log('Current thesis data from server before update:', currentServerData);
+            // console.log('Current thesis data from server before update:', currentServerData);
           } catch (fetchError) {
-            console.error('Error fetching current thesis data:', fetchError);
+            // console.error('Error fetching current thesis data:', fetchError);
           }
         }
 
@@ -419,28 +419,28 @@ export default {
           supervisor_comment: (this.isPromoter && this.isSupervisor) ? this.thesis.supervisor_comment || '' : (currentServerData.supervisor_comment || this.thesis.supervisor_comment || '')
         };
         
-        console.log('Saving thesis data:', thesisData);
+        // console.log('Saving thesis data:', thesisData);
         
         let response;
         
         if (this.thesisId) {
-          console.log('Updating existing thesis with ID:', this.thesisId);
+          // console.log('Updating existing thesis with ID:', this.thesisId);
           delete thesisData.id;
           response = await axios.patch(`/api/v1/thesis/${this.thesisId}`, thesisData);
         } else {
           try {
-            console.log('Attempting to create a new thesis for project:', projectId);
+            // console.log('Attempting to create a new thesis for project:', projectId);
             thesisData.project_id = parseInt(projectId);
             response = await axios.post('/api/v1/thesis', thesisData);
-            console.log('Successfully created new thesis:', response.data);
+            // console.log('Successfully created new thesis:', response.data);
           } catch (createError) {
-            console.error('Error creating new thesis:', createError);
+            // console.error('Error creating new thesis:', createError);
             this.errorMessage = 'Nie można utworzyć nowej pracy dyplomowej. Skontaktuj się z administratorem systemu.';
             return;
           }
         }
         
-        console.log('Thesis saved response:', response.data);
+        // console.log('Thesis saved response:', response.data);
         
         if (response.data && response.data.id) {
           this.thesisId = response.data.id;
@@ -459,10 +459,10 @@ export default {
         this.successMessage = 'Praca dyplomowa została zapisana.';
         this.errorMessage = '';
       } catch (error) {
-        console.error('Błąd przy zapisywaniu pracy dyplomowej:', error);
+        // console.error('Błąd przy zapisywaniu pracy dyplomowej:', error);
         if (error.response) {
-          console.error('Response status:', error.response.status);
-          console.error('Response data:', error.response.data);
+          // console.error('Response status:', error.response.status);
+          // console.error('Response data:', error.response.data);
           
           if (error.response.data && typeof error.response.data === 'string') {
             this.errorMessage = `Nie udało się zapisać pracy dyplomowej: ${error.response.data}`;
@@ -470,7 +470,7 @@ export default {
             this.errorMessage = `Nie udało się zapisać pracy dyplomowej. Kod błędu: ${error.response.status}`;
           }
         } else {
-          console.error('Error message:', error.message);
+          // console.error('Error message:', error.message);
           this.errorMessage = 'Nie udało się zapisać pracy dyplomowej. Sprawdź konsolę deweloperską dla szczegółów.';
         }
       }
@@ -497,7 +497,7 @@ export default {
         try {
           const thesisResponse = await axios.get(`/api/v1/thesis/${this.thesisId}`);
           const currentServerData = thesisResponse.data;
-          console.log('Current thesis data from server:', currentServerData);
+          // console.log('Current thesis data from server:', currentServerData);
 
           if (!currentServerData.title || !currentServerData.title_en || 
               !currentServerData.description || !currentServerData.description_en) {
@@ -505,8 +505,8 @@ export default {
             return;
           }
         } catch (fetchError) {
-          console.error('Error fetching current thesis data:', fetchError);
-          this.errorMessage = 'Nie udało się pobrać aktualnych danych pracy z serwera.';
+          // console.error('Error fetching current thesis data:', fetchError);
+          this.errorMessage = 'Nie udało się pobrać aktualnych danych pracy z serwera.';;
           return;
         }
         
@@ -515,10 +515,10 @@ export default {
           return;
         }
         
-        console.log('Approving thesis with ID:', this.thesisId);
+        // console.log('Approving thesis with ID:', this.thesisId);
         
         const response = await axios.post(`/api/v1/thesis/${this.thesisId}/approve`);
-        console.log('Thesis approval response:', response.data);
+        // console.log('Thesis approval response:', response.data);
         
         this.thesisAccepted = true;
         this.thesis.approval_status = 'APPROVED';
@@ -531,7 +531,7 @@ export default {
           this.$router.push({ name: 'GroupsPanel' });
         }, 1000); 
       } catch (error) {
-        console.error('Błąd przy akceptacji pracy:', error);
+        // console.error('Błąd przy akceptacji pracy:', error);
         this.errorMessage = 'Nie udało się zaakceptować pracy.';
         setTimeout(() => (this.errorMessage = ''), 2000);
       }
@@ -554,11 +554,11 @@ export default {
           return;
         }
         
-        console.log('Fetching thesis with chapters for project ID:', projectId);
+        // console.log('Fetching thesis with chapters for project ID:', projectId);
         
         try {
           const response = await axios.get(`/api/v1/thesis/byProjectId/${projectId}`);
-          console.log('Successfully fetched thesis with chapters:', response.data);
+          // console.log('Successfully fetched thesis with chapters:', response.data);
           
           if (response.data && response.data.chapters && Array.isArray(response.data.chapters)) {
             const chapters = response.data.chapters;
@@ -578,7 +578,7 @@ export default {
                     }
                   }
                 } catch (userError) {
-                  console.warn(`Could not fetch student data for project ID ${projectId}:`, userError);
+                  // console.warn(`Could not fetch student data for project ID ${projectId}:`, userError);
                 }
               }
               
@@ -601,10 +601,10 @@ export default {
           }
         } catch (error) {
           if (error.response && error.response.status === 404) {
-            console.warn('No thesis found for project ID:', projectId);
+            // console.warn('No thesis found for project ID:', projectId);
             this.groupChapters = [];
           } else {
-            console.error('Error fetching thesis with chapters:', error);
+            // console.error('Error fetching thesis with chapters:', error);
             throw error; 
           }
         }
@@ -617,10 +617,10 @@ export default {
         });
         
       } catch (error) {
-        console.error('Błąd przy pobieraniu rozdziałów grupy:', error);
+        // console.error('Błąd przy pobieraniu rozdziałów grupy:', error);
         if (error.response) {
-          console.error('Response status:', error.response.status);
-          console.error('Response data:', error.response.data);
+          // console.error('Response status:', error.response.status);
+          // console.error('Response data:', error.response.data);
         }
         this.groupChapters = [];
       } finally {
@@ -657,9 +657,9 @@ export default {
       this.readOnlyMode = false;
       this.showChapterModal = true;
       
-      console.log('Viewing chapter:', chapter);
-      console.log('Selected chapter ID:', this.selectedChapterId);
-      console.log('Editing own chapter:', this.editingOwnChapter);
+      // console.log('Viewing chapter:', chapter);
+      // console.log('Selected chapter ID:', this.selectedChapterId);
+      // console.log('Editing own chapter:', this.editingOwnChapter);
       
       setTimeout(() => {
         if (this.$refs.chapterComponent) {
@@ -680,8 +680,8 @@ export default {
       this.readOnlyMode = true;
       this.showChapterModal = true;
       
-      console.log('Viewing chapter in read-only mode:', chapter);
-      console.log('Selected chapter ID:', this.selectedChapterId);
+      // console.log('Viewing chapter in read-only mode:', chapter);
+      // console.log('Selected chapter ID:', this.selectedChapterId);
       
       setTimeout(() => {
         if (this.$refs.chapterComponent) {
@@ -697,8 +697,8 @@ export default {
       this.editingOwnChapter = true;
       this.showChapterModal = true;
     
-      console.log('Adding own chapter with projectId:', this.projectId || this.$route.params.groupId);
-      console.log('User ID for new chapter:', this.userId);
+      // console.log('Adding own chapter with projectId:', this.projectId || this.$route.params.groupId);
+      // console.log('User ID for new chapter:', this.userId);
       
       setTimeout(() => {
         if (this.$refs.chapterComponent) {

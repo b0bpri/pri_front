@@ -483,7 +483,7 @@ export default {
       immediate: true,
       handler(newStudents) {
         if (this.isPromoter && newStudents && newStudents.length === 1) {
-          console.log('Auto-selecting the only student in group:', newStudents[0].id);
+          // console.log('Auto-selecting the only student in group:', newStudents[0].id);
           this.selectedStudentId = newStudents[0].id;
           this.fetchStudentFiles();
         }
@@ -502,8 +502,8 @@ export default {
 
     this.isSupervisor = false;
 
-    console.log('ChaptersPreview initialized with projectId:', this.projectId, 'Group name:', this.groupName);
-    console.log('Is promoter (initial):', this.isPromoter, 'Is supervisor (initial): false - will verify from server');
+    // console.log('ChaptersPreview initialized with projectId:', this.projectId, 'Group name:', this.groupName);
+    // console.log('Is promoter (initial):', this.isPromoter, 'Is supervisor (initial): false - will verify from server');
 
     if (this.isPromoter && this.projectId) {
       this.verifySupervisorStatus();
@@ -515,10 +515,10 @@ export default {
     }
 
     if (this.userId && !this.isPromoter) {
-      console.log('Fetching files for student user ID:', this.userId);
+      // console.log('Fetching files for student user ID:', this.userId);
       this.fetchFiles();
     } else if (this.isPromoter) {
-      console.log('Promoter detected - skipping initial file fetch. Files will load when student is selected.');
+      // console.log('Promoter detected - skipping initial file fetch. Files will load when student is selected.');
     } else {
       this.errorMessage = 'Brak zalogowanego użytkownika. Proszę zalogować się ponownie.';
     }
@@ -537,17 +537,17 @@ export default {
 
     async fetchSupervisorId() {
       if (!this.projectId) {
-        console.warn('Cannot fetch supervisor ID: missing project ID');
+        // console.warn('Cannot fetch supervisor ID: missing project ID');
         return;
       }
 
       try {
-        console.log('Fetching supervisor ID for project:', this.projectId);
+        // console.log('Fetching supervisor ID for project:', this.projectId);
         const response = await axios.get('/api/v1/view/groups/all');
 
         if (response.data && response.data.dtos && Array.isArray(response.data.dtos)) {
           const allGroups = response.data.dtos;
-          console.log('All groups data for supervisor lookup:', allGroups);
+          // console.log('All groups data for supervisor lookup:', allGroups);
 
           const targetGroup = allGroups.find(group =>
               group.project_id === Number(this.projectId) ||
@@ -556,14 +556,14 @@ export default {
 
           if (targetGroup && targetGroup.supervisor) {
             this.supervisorId = targetGroup.supervisor.id;
-            console.log('Found supervisor ID for project:', this.projectId, '-> Supervisor ID:', this.supervisorId);
-            console.log('Supervisor details:', targetGroup.supervisor);
+            // console.log('Found supervisor ID for project:', this.projectId, '-> Supervisor ID:', this.supervisorId);
+            // console.log('Supervisor details:', targetGroup.supervisor);
           } else {
-            console.warn('No supervisor found for project:', this.projectId);
+            // console.warn('No supervisor found for project:', this.projectId);
           }
         }
       } catch (error) {
-        console.error('Error fetching supervisor ID:', error);
+        // console.error('Error fetching supervisor ID:', error);
       }
     },
 
@@ -576,19 +576,19 @@ export default {
       }
 
       if (!this.projectId) {
-        console.warn('Cannot verify supervisor status: missing project ID');
+        // console.warn('Cannot verify supervisor status: missing project ID');
         this.isSupervisor = false;
         this.isVerifying = false;
         return;
       }
 
       try {
-        console.log('Verifying if user is supervisor for project:', this.projectId);
+        // console.log('Verifying if user is supervisor for project:', this.projectId);
         const response = await axios.get('/api/v1/view/groups/all');
 
         if (response.data && response.data.dtos && Array.isArray(response.data.dtos)) {
           const allGroups = response.data.dtos;
-          console.log('All groups data:', allGroups);
+          // console.log('All groups data:', allGroups);
 
           const targetGroup = allGroups.find(group =>
               group.project_id === Number(this.projectId) ||
@@ -596,7 +596,7 @@ export default {
           );
 
           if (targetGroup) {
-            console.log('Found target group:', targetGroup);
+            // console.log('Found target group:', targetGroup);
 
             const supervisorId = targetGroup.supervisor?.id;
             const userId = Number(authStore.userId);
@@ -605,12 +605,12 @@ export default {
             this.supervisorId = supervisorId;
             this.thesisId = targetGroup.thesis_id;
 
-            console.log('Group supervisor ID:', supervisorId, 'Current user ID:', userId);
+            // console.log('Group supervisor ID:', supervisorId, 'Current user ID:', userId);
 
             const isActualSupervisor = supervisorId === userId;
 
             if (this.isSupervisor !== isActualSupervisor) {
-              console.warn(`Supervisor status mismatch - URL param: ${this.isSupervisor}, Actual: ${isActualSupervisor}`);
+              // console.warn(`Supervisor status mismatch - URL param: ${this.isSupervisor}, Actual: ${isActualSupervisor}`);
               this.isSupervisor = isActualSupervisor;
 
               if (!isActualSupervisor) {
@@ -621,7 +621,7 @@ export default {
               }
             }
           } else {
-            console.warn('Group not found with project ID:', this.projectId);
+            // console.warn('Group not found with project ID:', this.projectId);
             this.isSupervisor = false;
             this.errorMessage = 'Grupa nie została znaleziona. Dostęp został ograniczony.';
             setTimeout(() => {
@@ -629,11 +629,11 @@ export default {
             }, 5000);
           }
         } else {
-          console.warn('Unexpected response format from groups/all:', response.data);
+          // console.warn('Unexpected response format from groups/all:', response.data);
           this.isSupervisor = false;
         }
       } catch (error) {
-        console.error('Error verifying project supervisor:', error);
+        // console.error('Error verifying project supervisor:', error);
         // For safety, if we can't verify, we set supervisor status to false
         this.isSupervisor = false;
         this.errorMessage = 'Nie można zweryfikować uprawnień. Dostęp został ograniczony.';
@@ -668,32 +668,32 @@ export default {
       }
 
       try {
-        console.log('Fetching students for project ID:', this.projectId);
+        // console.log('Fetching students for project ID:', this.projectId);
         const response = await axios.get(`/api/v1/view/groups/students?id=${this.projectId}`);
-        console.log('Students in group response:', response.data);
+        // console.log('Students in group response:', response.data);
 
         if (Array.isArray(response.data)) {
           this.students = response.data;
         } else {
-          console.warn('Unexpected response format for students:', response.data);
+          // console.warn('Unexpected response format for students:', response.data);
           this.students = [];
         }
 
         if (this.students.length === 0) {
-          console.warn('No students found in the group with ID:', this.projectId);
+          // console.warn('No students found in the group with ID:', this.projectId);
         } else {
-          console.log('Found', this.students.length, 'students in the group');
+          // console.log('Found', this.students.length, 'students in the group');
         }
       } catch (error) {
-        console.error('Błąd przy pobieraniu studentów z grupy:', error);
-        this.errorMessage = 'Nie udało się pobrać listy studentów z grupy.';
+        // console.error('Błąd przy pobieraniu studentów z grupy:', error);
+        this.errorMessage = 'Nie udało się pobrać listy studentów z grupy.';;
         this.students = [];
       }
     },
 
     async fetchFiles() {
       if (this.isPromoter) {
-        console.log('Promoter attempting to call fetchFiles - this should use fetchStudentFiles instead');
+        // console.log('Promoter attempting to call fetchFiles - this should use fetchStudentFiles instead');
         return;
       }
 
@@ -702,7 +702,7 @@ export default {
         return;
       }
       try {
-        console.log('Fetching files for user ID:', this.userId);
+        // console.log('Fetching files for user ID:', this.userId);
         const response = await axios.get(`/api/v1/view/version/byOwner/${this.userId}`);
 
         // Handle the new response format
@@ -711,16 +711,16 @@ export default {
         } else if (response.data && Array.isArray(response.data)) {
           this.files = await this.mapFiles(response.data);
         } else {
-          console.warn('Unexpected response format:', response.data);
+          // console.warn('Unexpected response format:', response.data);
           this.files = [];
         }
 
-        console.log('Files fetched:', this.files);
+        // console.log('Files fetched:', this.files);
         this.uploadSuccess = false;
         this.errorMessage = '';
 
       } catch (error) {
-        console.error('Błąd przy pobieraniu plików:', error);
+        // console.error('Błąd przy pobieraniu plików:', error);
 
         if (error.response?.status === 500) {
           this.errorMessage = 'Błąd serwera - prawdopodobnie brak rozdziału dla tego użytkownika. Skontaktuj się z administratorem.';
@@ -738,7 +738,7 @@ export default {
         return;
       }
       try {
-        console.log('Fetching files for student ID:', this.selectedStudentId);
+        // console.log('Fetching files for student ID:', this.selectedStudentId);
         const response = await axios.get(`/api/v1/view/version/byOwner/${this.selectedStudentId}`);
 
         if (response.data && response.data.versions) {
@@ -746,11 +746,11 @@ export default {
         } else if (response.data && Array.isArray(response.data)) {
           this.studentFiles = await this.mapFiles(response.data);
         } else {
-          console.warn('Unexpected response format:', response.data);
+          // console.warn('Unexpected response format:', response.data);
           this.studentFiles = [];
         }
 
-        console.log('Student files fetched:', this.studentFiles);
+        // console.log('Student files fetched:', this.studentFiles);
 
         const chapters = await this.fetchChapters();
 
@@ -766,11 +766,11 @@ export default {
         } else {
           this.chapterTitle = 'Brak przypisanego rozdziału';
           this.chapterTitleEng = 'Brak przypisanego rozdziału';
-          console.warn('No chapter found for student:', this.selectedStudentId);
+          // console.warn('No chapter found for student:', this.selectedStudentId);
         }
 
       } catch (error) {
-        console.error('Błąd przy pobieraniu plików studenta:', error);
+        // console.error('Błąd przy pobieraniu plików studenta:', error);
 
         if (error.response?.status === 500) {
           this.errorMessage = 'Błąd serwera - prawdopodobnie brak rozdziału dla tego studenta.';
@@ -793,39 +793,39 @@ export default {
         this.fileContentCache.set(fileId, fileName);
         return fileName;
       } catch (error) {
-        console.log('Could not fetch file content for filename:', error);
+        // console.log('Could not fetch file content for filename:', error);
         this.fileContentCache.set(fileId, null);
         return null;
       }
     },
 
     async mapFiles(versions) {
-      console.log('Raw versions from API:', versions);
+      // console.log('Raw versions from API:', versions);
 
       if (!versions || !Array.isArray(versions) || versions.length === 0) {
-        console.warn('No versions data received or empty array');
+        // console.warn('No versions data received or empty array');
         return [];
       }
 
       versions.forEach((version, index) => {
-        console.log(`Version ${index} data structure:`, JSON.stringify(version, null, 2));
+        // console.log(`Version ${index} data structure:`, JSON.stringify(version, null, 2));
 
-        console.log(`Version ${index} uploader:`, version.uploader || version.userdataid || version.uploaderId || 'Not found');
+        // console.log(`Version ${index} uploader:`, version.uploader || version.userdataid || version.uploaderId || 'Not found');
 
         if (version.uploader) {
-          console.log(`Uploader details for version ${index}:`, version.uploader);
+          // console.log(`Uploader details for version ${index}:`, version.uploader);
         }
       });
 
       return versions.map((version) => {
-        console.log('Processing version:', version);
+        // console.log('Processing version:', version);
         let chapterVersionId = version.id;
         let fileId = version.fileId || version.file_id;
 
-        console.log('Version IDs extracted:', {
-          chapterVersionId: chapterVersionId,
-          fileId: fileId
-        });
+        // console.log('Version IDs extracted:', {
+        //   chapterVersionId: chapterVersionId,
+        //   fileId: fileId
+        // });
 
         let fileName = version.name || version.file_name || 'Brak Nazwy';
 
@@ -837,15 +837,15 @@ export default {
         let senderName = 'Nieznany';
         let uploaderId = null;
 
-        console.log('Uploader fields in version:', {
-          directUploader: version.uploader,
-          userdataid: version.userdataid,
-          uploaderId: version.uploaderId,
-          uploaderFName: version.uploaderFName,
-          uploaderLName: version.uploaderLName,
-          upload_time: version.upload_time,
-          date: version.date
-        });
+        // console.log('Uploader fields in version:', {
+        //   directUploader: version.uploader,
+        //   userdataid: version.userdataid,
+        //   uploaderId: version.uploaderId,
+        //   uploaderFName: version.uploaderFName,
+        //   uploaderLName: version.uploaderLName,
+        //   upload_time: version.upload_time,
+        //   date: version.date
+        // });
 
         if (version.uploader) {
           senderName = `${version.uploader.fName || version.uploader.fname || ''} ${version.uploader.lName || version.uploader.lname || ''}`.trim();
@@ -874,16 +874,16 @@ export default {
         const ownerId = version.owner?.id || version.ownerId || version.owner_id;
         const uploadDate = version.upload_time || version.uploadedAt || version.date || new Date().toISOString();
 
-        console.log('Mapped file:', {
-          id: fileId,
-          name: fileName,
-          uploadedAt: uploadDate,
-          senderName: senderName,
-          uploaderId: uploaderId,
-          ownerId: ownerId,
-          link: version.link,
-          chapterVersionId: version.versionId || version.version_id || version.id || fileId
-        });
+        // console.log('Mapped file:', {
+        //   id: fileId,
+        //   name: fileName,
+        //   uploadedAt: uploadDate,
+        //   senderName: senderName,
+        //   uploaderId: uploaderId,
+        //   ownerId: ownerId,
+        //   link: version.link,
+        //   chapterVersionId: version.versionId || version.version_id || version.id || fileId
+        // });
 
         return {
           id: fileId,
@@ -908,12 +908,12 @@ export default {
       const uploaderId = Number(file.uploaderId);
       const supervisorId = Number(this.supervisorId);
 
-      console.log('Checking if file uploaded by promoter:', {
-        fileName: file.name,
-        uploaderId: uploaderId,
-        supervisorId: supervisorId,
-        isPromoterUpload: uploaderId === supervisorId
-      });
+      // console.log('Checking if file uploaded by promoter:', {
+      //   fileName: file.name,
+      //   uploaderId: uploaderId,
+      //   supervisorId: supervisorId,
+      //   isPromoterUpload: uploaderId === supervisorId
+      // });
 
       return uploaderId === supervisorId;
     },
@@ -953,13 +953,13 @@ export default {
 
       if (!uploaderId || uploaderId <= 0 || !Number.isInteger(uploaderId)) {
         this.errorMessage = 'Nieprawidłowe ID użytkownika przesyłającego.';
-        console.error('Invalid uploaderId:', authStore.userId, 'converted to:', uploaderId);
+        // console.error('Invalid uploaderId:', authStore.userId, 'converted to:', uploaderId);
         return;
       }
 
       if (!ownerId || ownerId <= 0 || !Number.isInteger(ownerId)) {
         this.errorMessage = 'Nieprawidłowe ID właściciela pliku.';
-        console.error('Invalid ownerId:', this.selectedStudentId, 'converted to:', ownerId);
+        // console.error('Invalid ownerId:', this.selectedStudentId, 'converted to:', ownerId);
         return;
       }
 
@@ -974,33 +974,33 @@ export default {
       formData.append('uploaderId', uploaderId.toString());
       formData.append('ownerId', ownerId.toString());
 
-      console.log('=== UPLOAD DEBUG INFO ===');
-      console.log('Original authStore.userId:', authStore.userId, typeof authStore.userId);
-      console.log('Original selectedStudentId:', this.selectedStudentId, typeof this.selectedStudentId);
-      console.log('Converted uploaderId:', uploaderId, typeof uploaderId);
-      console.log('Converted ownerId:', ownerId, typeof ownerId);
-      console.log('isPromoter:', this.isPromoter);
-      console.log('File details:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
+      // console.log('=== UPLOAD DEBUG INFO ===');
+      // console.log('Original authStore.userId:', authStore.userId, typeof authStore.userId);
+      // console.log('Original selectedStudentId:', this.selectedStudentId, typeof this.selectedStudentId);
+      // console.log('Converted uploaderId:', uploaderId, typeof uploaderId);
+      // console.log('Converted ownerId:', ownerId, typeof ownerId);
+      // console.log('isPromoter:', this.isPromoter);
+      // console.log('File details:', {
+      //   name: file.name,
+      //   size: file.size,
+      //   type: file.type
+      // });
 
       try {
         // Single author upload
         const url = `/api/v1/file?uploaderId=${uploaderId.toString()}&ownerId=${ownerId.toString()}`;
-        console.log('Request URL:', url);
-        console.log('FormData contains:', {
-          file: file.name,
-          uploaderId: uploaderId.toString(),
-          ownerId: ownerId.toString()
-        });
+        // console.log('Request URL:', url);
+        // console.log('FormData contains:', {
+        //   file: file.name,
+        //   uploaderId: uploaderId.toString(),
+        //   ownerId: ownerId.toString()
+        // });
 
-        console.log('AuthStore user info:', {
-          userId: authStore.userId,
-          userName: authStore.userName,
-          isPromoter: authStore.isPromoter
-        });
+        // console.log('AuthStore user info:', {
+        //   userId: authStore.userId,
+        //   userName: authStore.userName,
+        //   isPromoter: authStore.isPromoter
+        // });
 
         const response = await axios.post(url, formData, {
           headers: {
@@ -1009,7 +1009,7 @@ export default {
           timeout: 30000
         });
 
-        console.log('Upload response:', response.data, response.status);
+        // console.log('Upload response:', response.data, response.status);
 
         if (response.status === 200 && response.data && response.data > 0) {
           this.uploadSuccess = true;
@@ -1030,7 +1030,7 @@ export default {
         }
 
       } catch (error) {
-        console.error('Upload error details:', error);
+        // console.error('Upload error details:', error);
 
         let errorMessage = 'Nie udało się przesłać pliku.';
 
@@ -1046,12 +1046,12 @@ export default {
             errorMessage = `Błąd serwera (${status}): ${data?.message || 'Nieznany błąd'}`;
           }
 
-          console.error('Server error:', {
-            status: status,
-            data: data,
-            uploaderId: uploaderId,
-            ownerId: ownerId
-          });
+          // console.error('Server error:', {
+          //   status: status,
+          //   data: data,
+          //   uploaderId: uploaderId,
+          //   ownerId: ownerId
+          // });
 
         } else if (error.request) {
           errorMessage = 'Brak połączenia z serwerem. Sprawdź połączenie internetowe.';
@@ -1115,17 +1115,17 @@ export default {
       let apiUrl = '';
 
       try {
-        console.log('=== ONENOTE LINK DEBUG INFO ===');
-        console.log('Original authStore.userId:', authStore.userId, typeof authStore.userId);
-        console.log('Original selectedStudentId:', this.selectedStudentId, typeof this.selectedStudentId);
-        console.log('Converted uploaderId:', uploaderId, typeof uploaderId);
-        console.log('Converted ownerId:', ownerId, typeof ownerId);
-        console.log('isPromoter:', this.isPromoter);
-        console.log('Link details:', {
-          url: this.oneNoteLink
-        });
+        // console.log('=== ONENOTE LINK DEBUG INFO ===');
+        // console.log('Original authStore.userId:', authStore.userId, typeof authStore.userId);
+        // console.log('Original selectedStudentId:', this.selectedStudentId, typeof this.selectedStudentId);
+        // console.log('Converted uploaderId:', uploaderId, typeof uploaderId);
+        // console.log('Converted ownerId:', ownerId, typeof ownerId);
+        // console.log('isPromoter:', this.isPromoter);
+        // console.log('Link details:', {
+        //   url: this.oneNoteLink
+        // });
 
-        console.log('Preparing to send OneNote link:', linkData);
+        // console.log('Preparing to send OneNote link:', linkData);
 
         const chapters = await this.fetchChapters();
 
@@ -1139,14 +1139,14 @@ export default {
         );
 
         if (!studentChapter) {
-          console.warn('No chapter found for student ID:', this.selectedStudentId);
-          console.log('Available chapters:', chapters);
-          this.errorMessage = 'Nie znaleziono rozdziału dla wybranego studenta. Proszę najpierw utworzyć rozdział dla tego studenta.';
+          // console.warn('No chapter found for student ID:', this.selectedStudentId);
+          // console.log('Available chapters:', chapters);
+          this.errorMessage = 'Nie znaleziono rozdziału dla wybranego studenta. Proszę najpierw utworzyć rozdział dla tego studenta.';;
           return;
         }
 
         const chapterId = studentChapter.id;
-        console.log('Using chapter ID for student:', chapterId, 'Student ID:', this.selectedStudentId);
+        // console.log('Using chapter ID for student:', chapterId, 'Student ID:', this.selectedStudentId);
 
         if (!chapterId) {
           this.errorMessage = 'Nie znaleziono ID rozdziału. Proszę najpierw utworzyć rozdział.';
@@ -1154,7 +1154,7 @@ export default {
         }
 
         apiUrl = `/api/v1/chapter/addVersionWithLink?chapterIds=${chapterId}`;
-        console.log('Request URL:', apiUrl);
+        // console.log('Request URL:', apiUrl);
 
         const response = await axios.post(apiUrl, linkData, {
           headers: {
@@ -1170,13 +1170,13 @@ export default {
 
           await this.fetchStudentFiles();
 
-          console.log('OneNote link added successfully:', response.data);
+          // console.log('OneNote link added successfully:', response.data);
         } else {
           throw new Error(`Link sharing failed. Server returned: ${response.data}`);
         }
 
       } catch (error) {
-        console.error('Error sharing OneNote link:', error);
+        // console.error('Error sharing OneNote link:', error);
 
         let errorMessage = 'Nie udało się udostępnić linku.';
 
@@ -1198,12 +1198,12 @@ export default {
             errorMessage = `Błąd serwera (${status}): ${data?.message || 'Nieznany błąd'}`;
           }
 
-          console.error('Server error details:', {
-            status: status,
-            data: data,
-            url: apiUrl,
-            requestBody: linkData
-          });
+          // console.error('Server error details:', {
+          //   status: status,
+          //   data: data,
+          //   url: apiUrl,
+          //   requestBody: linkData
+          // });
         } else if (error.request) {
           errorMessage = 'Brak połączenia z serwerem. Sprawdź połączenie internetowe.';
         } else if (error.message) {
@@ -1250,7 +1250,7 @@ export default {
     },
 
     async previewFile(file) {
-      console.log('Previewing file:', file);
+      // console.log('Previewing file:', file);
       
       // Check if this is an external link
       const isExternalLink = file.link && !file.link.includes('/api/v1/download/');
@@ -1272,24 +1272,24 @@ export default {
       try {
         // Get JWT token from auth store
         const token = authStore.token;
-        console.log('Token available:', !!token, 'Token length:', token ? token.length : 0);
+        // console.log('Token available:', !!token, 'Token length:', token ? token.length : 0);
         
         if (!token) {
           this.errorMessage = 'Brak tokena autoryzacji. Zaloguj się ponownie.';
-          console.error('No JWT token available');
+          // console.error('No JWT token available');
           pushNotification('Sesja wygasła. Zaloguj się ponownie.', 'error');
           return;
         }
 
-        console.log('Fetching file from:', `/api/v1/download/${fileId}`);
+        // console.log('Fetching file from:', `/api/v1/download/${fileId}`);
         
         // Download file with authorization header (axios interceptor adds Bearer token)
         const response = await axios.get(`/api/v1/download/${fileId}`, {
           responseType: 'blob' 
         });
 
-        console.log('File downloaded successfully. Content-Type:', response.headers['content-type']);
-        console.log('Response size:', response.data.size);
+        // console.log('File downloaded successfully. Content-Type:', response.headers['content-type']);
+        // console.log('Response size:', response.data.size);
 
         // Create a local blob URL and open it in a new tab
         const blob = new Blob([response.data], { 
@@ -1301,9 +1301,9 @@ export default {
         // Release memory after opening
         setTimeout(() => window.URL.revokeObjectURL(url), 1000);
       } catch (error) {
-        console.error('Error previewing file:', error);
-        console.error('Error response:', error.response);
-        console.error('Error status:', error.response?.status);
+        // console.error('Error previewing file:', error);
+        // console.error('Error response:', error.response);
+        // console.error('Error status:', error.response?.status);
         
         if (error.response && error.response.status === 401) {
           this.errorMessage = 'Brak autoryzacji. Token wygasł lub jest nieprawidłowy. Zaloguj się ponownie.';
@@ -1317,12 +1317,12 @@ export default {
 
     goToFileChecklist(file) {
       if (!file.chapterVersionId) {
-        console.error('No chapter version ID available for file:', file);
+        // console.error('No chapter version ID available for file:', file);
         this.errorMessage = 'Nie można otworzyć checklisty - brak ID wersji rozdziału.';
         return;
       }
 
-      console.log(`Navigating to checklist with chapter version ID: ${file.chapterVersionId}`);
+      // console.log(`Navigating to checklist with chapter version ID: ${file.chapterVersionId}`);
       this.$router.push({
         name: 'FileChecklist',
         params: { chapterVersionId: file.chapterVersionId }
@@ -1331,12 +1331,12 @@ export default {
 
     goToThesisChecklist() {
       if (!this.thesisId) {
-        console.error('No thesis ID available');
+        // console.error('No thesis ID available');
         this.errorMessage = 'Nie można otworzyć checklisty - brak ID pracy.';
         return;
       }
 
-      console.log(`Navigating to thesis checklist for thesis ID: ${this.thesisId}`);
+      // console.log(`Navigating to thesis checklist for thesis ID: ${this.thesisId}`);
       this.$router.push({
         name: 'FileChecklist',
         params: { chapterVersionId: this.thesisId },
@@ -1356,7 +1356,7 @@ export default {
       this.selectedFileForComment = file;
       this.showCommentModal = true;
       const versionId = file.chapterVersionId || file.id;
-      console.log(`Opening comment modal for version ID: ${versionId}`);
+      // console.log(`Opening comment modal for version ID: ${versionId}`);
       await this.fetchFileComment(versionId);
     },
 
@@ -1366,7 +1366,7 @@ export default {
     },
 
     async fetchFileComment(versionId) {
-      console.log(`Fetching comments for version ID: ${versionId}`);
+      // console.log(`Fetching comments for version ID: ${versionId}`);
 
       if (this.fileComments[versionId]) {
         this.fileComment = this.fileComments[versionId];
@@ -1375,29 +1375,29 @@ export default {
 
       try {
         const response = await axios.get(`/api/v1/view/version/${versionId}/comment`);
-        console.log('Comment API response:', response.data);
+        // console.log('Comment API response:', response.data);
 
         if (response.data && response.data.text) {
           // Single comment object returned
           this.fileComment = response.data.text || '';
-          console.log('Comment found:', response.data);
+          // console.log('Comment found:', response.data);
         } else {
           this.fileComment = '';
-          console.log('No comment found for version:', versionId);
+          // console.log('No comment found for version:', versionId);
         }
 
         this.fileComments[versionId] = this.fileComment;
       } catch (error) {
-        console.error('Error fetching comments:', error);
+        // console.error('Error fetching comments:', error);
 
         // Handle 404 specifically - it just means no comments exist yet
         if (error.response?.status === 404) {
-          console.log('No comments found (404) - this is normal for files without comments');
+          // console.log('No comments found (404) - this is normal for files without comments');
           this.fileComment = '';
           this.fileComments[versionId] = '';
         } else {
           // Other errors show a more specific message
-          console.error('Unexpected error fetching comments:', error);
+          // console.error('Unexpected error fetching comments:', error);
           this.fileComment = '';
 
           // Only show error message for non-404 errors
@@ -1433,7 +1433,7 @@ export default {
         let existingCommentId = null;
 
         try {
-          console.log('Checking for existing comments first...');
+          // console.log('Checking for existing comments first...');
           const versionIdForCheck = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
           const existingCommentsResponse = await axios.get(`/api/v1/view/comments?versionId=${versionIdForCheck}`);
 
@@ -1441,10 +1441,10 @@ export default {
               existingCommentsResponse.data.comments &&
               existingCommentsResponse.data.comments.length > 0) {
             existingCommentId = existingCommentsResponse.data.comments[0].id;
-            console.log(`Found existing comment with ID: ${existingCommentId}`);
+            // console.log(`Found existing comment with ID: ${existingCommentId}`);
           }
         } catch (checkError) {
-          console.log('Error checking for existing comments:', checkError);
+          // console.log('Error checking for existing comments:', checkError);
         }
 
         // Get chapter_id by finding which chapter the file belongs to
@@ -1471,9 +1471,9 @@ export default {
               chapterId = chapters[0].id;
             }
           }
-          console.log('Found chapter_id for comment:', chapterId);
+          // console.log('Found chapter_id for comment:', chapterId);
         } catch (chapterError) {
-          console.error('Error fetching chapter_id for comment:', chapterError);
+          // console.error('Error fetching chapter_id for comment:', chapterError);
         }
 
         if (!chapterId) {
@@ -1483,7 +1483,7 @@ export default {
 
         if (existingCommentId) {
           try {
-            console.log(`Updating existing comment ${existingCommentId} with text: ${this.fileComment}`);
+            // console.log(`Updating existing comment ${existingCommentId} with text: ${this.fileComment}`);
             const updateResponse = await axios.post(`/api/v1/update/comment`, {
               id: existingCommentId,
               text: this.fileComment
@@ -1493,7 +1493,7 @@ export default {
               const versionId = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
               this.fileComments[versionId] = this.fileComment;
               this.commentSuccess = true;
-              console.log('Comment updated successfully');
+              // console.log('Comment updated successfully');
               setTimeout(() => {
                 this.commentSuccess = false;
                 this.closeCommentModal();
@@ -1502,7 +1502,7 @@ export default {
               return;
             }
           } catch (updateError) {
-            console.error('Failed to update comment:', updateError);
+            // console.error('Failed to update comment:', updateError);
           }
         }
 
@@ -1515,26 +1515,26 @@ export default {
           lname: authStore.lname || ""
         };
 
-        console.log('Current auth store state:', {
-          userId: authStore.userId,
-          fname: authStore.fname,
-          lname: authStore.lname
-        });
+        // console.log('Current auth store state:', {
+        //   userId: authStore.userId,
+        //   fname: authStore.fname,
+        //   lname: authStore.lname
+        // });
 
         if (existingCommentId) {
           commentDto.id = parseInt(existingCommentId);
         }
 
-        console.log('Creating new comment with updated format:', commentDto);
+        // console.log('Creating new comment with updated format:', commentDto);
 
         const response = await axios.post('/api/v1/post/comment', commentDto);
-        console.log('Save comment response:', response);
+        // console.log('Save comment response:', response);
 
         if (response.status === 200 || response.status === 201) {
           const versionId = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
           this.fileComments[versionId] = this.fileComment;
           this.commentSuccess = true;
-          console.log('Comment saved successfully');
+          // console.log('Comment saved successfully');
           setTimeout(() => {
             this.commentSuccess = false;
             this.closeCommentModal();
@@ -1546,13 +1546,13 @@ export default {
           throw new Error(`Server returned unexpected status: ${response.status}`);
         }
       } catch (error) {
-        console.error('Błąd przy zapisywaniu komentarza:', error);
+        // console.error('Błąd przy zapisywaniu komentarza:', error);
 
         let errorMsg = 'Nie udało się zapisać komentarza.';
 
         if (error.response) {
           const status = error.response.status;
-          console.error('Response error:', error.response.data);
+          // console.error('Response error:', error.response.data);
 
           if (status === 400) {
             errorMsg = 'Nieprawidłowy format danych komentarza.';
@@ -1577,16 +1577,16 @@ export default {
 
     async fetchChapters() {
       if (!this.projectId) {
-        console.error('No project ID available to fetch chapters');
+        // console.error('No project ID available to fetch chapters');
         return [];
       }
 
       try {
-        console.log('Fetching chapters for project:', this.projectId);
+        // console.log('Fetching chapters for project:', this.projectId);
         const response = await axios.get(`/api/v1/chapter/${this.projectId}/all`);
 
         if (response.data && Array.isArray(response.data)) {
-          console.log('Chapters fetched successfully:', response.data);
+          // console.log('Chapters fetched successfully:', response.data);
 
           // If user is not a supervisor, set the chapter title from their own data
           if (!this.isSupervisor && response.data.length > 0) {
@@ -1605,20 +1605,20 @@ export default {
 
           return response.data;
         } else {
-          console.warn('Unexpected response format from chapters endpoint:', response.data);
+          // console.warn('Unexpected response format from chapters endpoint:', response.data);
           return [];
         }
       } catch (error) {
-        console.error('Error fetching chapters:', error);
+        // console.error('Error fetching chapters:', error);
         return [];
       }
     },
 
     async deleteComment(commentId) {
       try {
-        console.log('Attempting to delete comment ID:', commentId);
+        // console.log('Attempting to delete comment ID:', commentId);
         const response = await axios.get(`/api/v1/view/comment?id=${commentId}`);
-        console.log('Delete comment response:', response.data);
+        // console.log('Delete comment response:', response.data);
 
         if (response.data === true) {
           const versionId = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
@@ -1628,7 +1628,7 @@ export default {
           throw new Error('Failed to delete comment');
         }
       } catch (error) {
-        console.error('Błąd przy usuwaniu komentarza:', error);
+        // console.error('Błąd przy usuwaniu komentarza:', error);
         this.errorMessage = `Nie udało się usunąć komentarza: ${error.message}`;
         return false;
       }
@@ -1660,30 +1660,30 @@ export default {
           return;
         }
 
-        console.log('Fetching group members for project ID:', this.projectId);
+        // console.log('Fetching group members for project ID:', this.projectId);
         const response = await axios.get(`/api/v1/view/groups/students?id=${this.projectId}`);
-        console.log('Groups response:', response.data);
+        // console.log('Groups response:', response.data);
 
         if (Array.isArray(response.data)) {
           const allMembers = response.data;
-          console.log('Found group members:', allMembers);
+          // console.log('Found group members:', allMembers);
 
           // Filter out logged in user and get other members
           this.groupMembers = allMembers.filter(member =>
               member.id !== Number(this.userId)
           );
 
-          console.log('Group members (excluding logged in user):', this.groupMembers);
+          // console.log('Group members (excluding logged in user):', this.groupMembers);
 
           if (this.groupMembers.length === 0) {
             this.errorMessage = 'Nie znaleziono innych członków w Twojej grupie.';
           }
         } else {
-          console.warn('Unexpected response format:', response.data);
+          // console.warn('Unexpected response format:', response.data);
           this.errorMessage = 'Nieoczekiwany format odpowiedzi z serwera.';
         }
       } catch (error) {
-        console.error('Error fetching group members:', error);
+        // console.error('Error fetching group members:', error);
         this.errorMessage = 'Nie udało się pobrać listy członków grupy.';
         this.groupMembers = [];
       } finally {
@@ -1708,11 +1708,11 @@ export default {
         // Include logged in user in the list of owners
         const ownerIds = [uploaderId, ...this.selectedCoAuthors.map(id => Number(id))];
 
-        console.log('Multi-author upload:', {
-          uploaderId: uploaderId,
-          ownerIds: ownerIds,
-          fileName: file.name
-        });
+        // console.log('Multi-author upload:', {
+        //   uploaderId: uploaderId,
+        //   ownerIds: ownerIds,
+        //   fileName: file.name
+        // });
 
         const formData = new FormData();
         formData.append('file', file);
@@ -1721,7 +1721,7 @@ export default {
         const ownerIdParams = ownerIds.map(id => `ownerId=${id}`).join('&');
         const url = `/api/v1/file?${ownerIdParams}&uploaderId=${uploaderId}`;
 
-        console.log('Multi-author upload URL:', url);
+        // console.log('Multi-author upload URL:', url);
 
         const response = await axios.post(url, formData, {
           headers: {
@@ -1751,7 +1751,7 @@ export default {
         }
 
       } catch (error) {
-        console.error('Multi-author upload error:', error);
+        // console.error('Multi-author upload error:', error);
         this.errorMessage = 'Nie udało się przesłać pliku wieloautorskiego.';
       }
     },
@@ -1765,7 +1765,7 @@ export default {
         await this.fetchGroupMembers();
         this.showPromoterMultiAuthorModal = true;
       } catch (error) {
-        console.error('Error opening promoter multi-author modal:', error);
+        // console.error('Error opening promoter multi-author modal:', error);
         this.errorMessage = 'Nie udało się pobrać listy studentów.';
       } finally {
         this.loadingGroupMembers = false;
@@ -1793,11 +1793,11 @@ export default {
         const uploaderId = Number(this.userId);
         const selectedStudentIds = this.promoterSelectedStudents.map(id => Number(id));
 
-        console.log('Promoter multi-author upload:', {
-          uploaderId: uploaderId,
-          studentIds: selectedStudentIds,
-          fileName: file.name
-        });
+        // console.log('Promoter multi-author upload:', {
+        //   uploaderId: uploaderId,
+        //   studentIds: selectedStudentIds,
+        //   fileName: file.name
+        // });
 
         const formData = new FormData();
         formData.append('file', file);
@@ -1806,7 +1806,7 @@ export default {
         const ownerIdParams = selectedStudentIds.map(id => `ownerId=${id}`).join('&');
         const url = `/api/v1/file?${ownerIdParams}&uploaderId=${uploaderId}`;
 
-        console.log('Promoter multi-author upload URL:', url);
+        // console.log('Promoter multi-author upload URL:', url);
 
         const response = await axios.post(url, formData, {
           headers: {
@@ -1836,7 +1836,7 @@ export default {
         }
 
       } catch (error) {
-        console.error('Promoter multi-author upload error:', error);
+        // console.error('Promoter multi-author upload error:', error);
         this.errorMessage = 'Nie udało się przesłać pliku wieloautorskiego.';
       }
     },
@@ -1849,7 +1849,7 @@ export default {
         await this.fetchGroupMembers();
         this.showPromoterMultiAuthorLinkModal = true;
       } catch (error) {
-        console.error('Error opening promoter multi-author link modal:', error);
+        // console.error('Error opening promoter multi-author link modal:', error);
         this.errorMessage = 'Nie udało się pobrać listy studentów.';
       } finally {
         this.loadingGroupMembers = false;
@@ -1862,32 +1862,32 @@ export default {
     },
 
     async sharePromoterMultiAuthorLink() {
-      console.log('=== PROMOTER MULTI-AUTHOR LINK SHARE CALLED ===');
+      // console.log('=== PROMOTER MULTI-AUTHOR LINK SHARE CALLED ===');
 
       if (this.promoterSelectedStudents.length === 0) {
-        console.log('No students selected');
+        // console.log('No students selected');
         this.errorMessage = 'Musisz wybrać co najmniej jednego studenta.';
         return;
       }
 
       if (!this.oneNoteLink || this.oneNoteLink.trim() === '') {
-        console.log('No OneNote link provided');
+        // console.log('No OneNote link provided');
         this.errorMessage = 'Musisz podać link do OneNote.';
         return;
       }
 
-      console.log('Selected students:', this.promoterSelectedStudents);
-      console.log('OneNote link:', this.oneNoteLink);
+      // console.log('Selected students:', this.promoterSelectedStudents);
+      // console.log('OneNote link:', this.oneNoteLink);
 
       try {
         const uploaderId = Number(this.userId);
         const selectedStudentIds = this.promoterSelectedStudents.map(id => Number(id));
 
-        console.log('Promoter multi-author link share:', {
-          uploaderId: uploaderId,
-          studentIds: selectedStudentIds,
-          oneNoteLink: this.oneNoteLink
-        });
+        // console.log('Promoter multi-author link share:', {
+        //   uploaderId: uploaderId,
+        //   studentIds: selectedStudentIds,
+        //   oneNoteLink: this.oneNoteLink
+        // });
 
         // Get chapters for all selected students
         const chapters = await this.fetchChapters();
@@ -1904,7 +1904,7 @@ export default {
           if (studentChapter) {
             studentChapterIds.push(studentChapter.id);
           } else {
-            console.warn('No chapter found for student ID:', studentId);
+            // console.warn('No chapter found for student ID:', studentId);
           }
         }
 
@@ -1913,7 +1913,7 @@ export default {
           return;
         }
 
-        console.log('Found chapters for students:', studentChapterIds);
+        // console.log('Found chapters for students:', studentChapterIds);
 
         // Build single request with multiple chapter IDs
         const chapterIdsParam = studentChapterIds.join(',');
@@ -1926,9 +1926,9 @@ export default {
           link: this.oneNoteLink
         };
 
-        console.log('Multi-author link request URL:', apiUrl);
-        console.log('Multi-author link data:', linkData);
-        console.log('Chapter IDs:', studentChapterIds);
+        // console.log('Multi-author link request URL:', apiUrl);
+        // console.log('Multi-author link data:', linkData);
+        // console.log('Chapter IDs:', studentChapterIds);
 
         // Execute single request for all students
         const response = await axios.post(apiUrl, linkData, {
@@ -1938,7 +1938,7 @@ export default {
           timeout: 30000
         });
 
-        console.log('Response received:', { status: response.status, data: response.data });
+        // console.log('Response received:', { status: response.status, data: response.data });
 
         if (response.status === 200 || response.status === 201) {
           this.uploadSuccess = true;
@@ -1953,13 +1953,13 @@ export default {
           }
 
           pushNotification('Link OneNote został udostępniony pomyślnie dla wybranych studentów.', 'success');
-          console.log('Multi-author OneNote link shared successfully');
+          // console.log('Multi-author OneNote link shared successfully');
         } else {
           throw new Error(`Server returned unexpected status: ${response.status}`);
         }
 
       } catch (error) {
-        console.error('Promoter multi-author link share error:', error);
+        // console.error('Promoter multi-author link share error:', error);
 
         let errorMessage = 'Nie udało się udostępnić linku wieloautorskiego.';
 
@@ -1967,7 +1967,7 @@ export default {
           const status = error.response.status;
           const data = error.response.data;
 
-          console.error('API Error:', { status, data });
+          // console.error('API Error:', { status, data });
 
           if (status === 400) {
             errorMessage = 'Nieprawidłowe dane. Sprawdź poprawność linku i wybranych studentów.';
@@ -1983,7 +1983,7 @@ export default {
         }
 
         this.errorMessage = errorMessage;
-        console.log('Error message set:', this.errorMessage);
+        // console.log('Error message set:', this.errorMessage);
       }
     },
     async fetchThesisTitle() {
@@ -1996,10 +1996,10 @@ export default {
           this.thesisTitle = response.data.title || response.data.name || 'Brak tytułu';
           this.thesisTitleEng = response.data.title_en || response.data.name_en || 'Brak tytułu angielskiego';
           this.thesisId = response.data.id; // Set thesis ID for checklist navigation
-          console.log('Fetched thesis title and ID:', this.thesisTitle, this.thesisId);
+          // console.log('Fetched thesis title and ID:', this.thesisTitle, this.thesisId);
         }
       } catch (error) {
-        console.error('Error fetching thesis title:', error);
+        // console.error('Error fetching thesis title:', error);
         this.thesisTitle = 'ERROR, thesis title not found';
         this.thesisId = null;
       }

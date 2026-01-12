@@ -103,19 +103,19 @@ export default {
       immediate: true,
       handler(newVal) {
         this.internalGroupId = newVal;
-        console.log('Updated internalGroupId from prop:', this.internalGroupId);
+        // console.log('Updated internalGroupId from prop:', this.internalGroupId);
       }
     }
   },
   methods: {
     setReadOnly(value) {
-      console.log('Setting read-only mode:', value);
+      // console.log('Setting read-only mode:', value);
       this.readonly = value;
     },
     
     setGroupId(groupId) {
       this.internalGroupId = groupId;
-      console.log('Setting group ID:', groupId);
+      // console.log('Setting group ID:', groupId);
     },
     
     async loadChapter(chapterId) {
@@ -126,7 +126,7 @@ export default {
       
       try {
         const response = await axios.get(`/api/v1/chapter/${chapterId}`);
-        console.log('Fetched chapter data:', response.data);
+        // console.log('Fetched chapter data:', response.data);
         
         this.chapter = {
           ...response.data,
@@ -148,13 +148,13 @@ export default {
         this.successMessage = '';
         this.errorMessage = '';
       } catch (error) {
-        console.error('Błąd przy pobieraniu danych rozdziału:', error);
+        // console.error('Błąd przy pobieraniu danych rozdziału:', error);
         this.errorMessage = 'Nie udało się pobrać danych rozdziału.';
       }
     },
     
     createNewChapter(userId) {
-      console.log('Creating new chapter with groupId:', this.groupId, 'and userId:', userId);
+      // console.log('Creating new chapter with groupId:', this.groupId, 'and userId:', userId);
       
       this.chapter = {
         title: '',
@@ -174,7 +174,7 @@ export default {
     setGroupId(id) {
       if (id) {
         this.internalGroupId = id;
-        console.log('Manually set internalGroupId to:', id);
+        // console.log('Manually set internalGroupId to:', id);
       }
     },
     
@@ -186,24 +186,24 @@ export default {
         
         if (!projectId) {
           projectId = this.groupId;
-          console.log('Using projectId from prop:', projectId);
+          // console.log('Using projectId from prop:', projectId);
         }
 
         if (!projectId && this.$route && this.$route.params) {
           projectId = this.$route.params.groupId;
-          console.log('Using projectId from route params:', projectId);
+          // console.log('Using projectId from route params:', projectId);
         }
         
         if (!projectId && this.$parent && this.$parent.projectId) {
           projectId = this.$parent.projectId;
-          console.log('Using projectId from parent component:', projectId);
+          // console.log('Using projectId from parent component:', projectId);
         }
         
         if (!projectId) {
-          console.error('Missing projectId. Sources checked:',
-            'Direct prop:', this.groupId,
-            'Route param:', this.$route && this.$route.params ? this.$route.params.groupId : 'N/A',
-            'Parent prop:', this.$parent ? this.$parent.projectId : 'N/A');
+          // console.error('Missing projectId. Sources checked:',
+          //   'Direct prop:', this.groupId,
+          //   'Route param:', this.$route && this.$route.params ? this.$route.params.groupId : 'N/A',
+          //   'Parent prop:', this.$parent ? this.$parent.projectId : 'N/A');
           this.errorMessage = 'Brak identyfikatora projektu. Nie można zapisać rozdziału.';
           return;
         }
@@ -218,7 +218,7 @@ export default {
           supervisor_comment: this.chapter.supervisor_comment || ''
         };
         
-        console.log('Saving chapter data:', chapterData);
+        // console.log('Saving chapter data:', chapterData);
         
         let response;
         if (this.chapterId) {
@@ -227,7 +227,7 @@ export default {
           response = await axios.post('/api/v1/chapter', chapterData);
         }
         
-        console.log('Chapter saved response:', response.data);
+        // console.log('Chapter saved response:', response.data);
         
         if (response.data && response.data.id) {
           this.chapterId = response.data.id;
@@ -241,9 +241,9 @@ export default {
         this.successMessage = 'Rozdział został zapisany.';
         this.errorMessage = '';
       } catch (error) {
-        console.error('Błąd przy zapisywaniu rozdziału:', error);
+        // console.error('Błąd przy zapisywaniu rozdziału:', error);
         if (error.response && error.response.data) {
-          console.error('Response data:', error.response.data);
+          // console.error('Response data:', error.response.data);
           
           if (typeof error.response.data === 'string') {
             this.errorMessage = `Nie udało się zapisać rozdziału: ${error.response.data}`;
@@ -264,12 +264,12 @@ export default {
           return;
         }
         
-        console.log('Approving chapter with ID:', this.chapterId);
+        // console.log('Approving chapter with ID:', this.chapterId);
         let currentServerData;
         try {
           const chapterResponse = await axios.get(`/api/v1/chapter/${this.chapterId}`);
           currentServerData = chapterResponse.data;
-          console.log('Current chapter data from server:', currentServerData);
+          // console.log('Current chapter data from server:', currentServerData);
 
           if (!currentServerData.title || !currentServerData.title_en || 
               !currentServerData.description || !currentServerData.description_en) {
@@ -277,21 +277,21 @@ export default {
             return;
           }
         } catch (fetchError) {
-          console.error('Error fetching current chapter data:', fetchError);
+          // console.error('Error fetching current chapter data:', fetchError);
           this.errorMessage = 'Nie udało się pobrać aktualnych danych rozdziału.';
           return;
         }
         
         try {
           const approvalResponse = await axios.post(`/api/v1/chapter/${this.chapterId}/approve`);
-          console.log('Chapter approval direct response:', approvalResponse.data);
+          // console.log('Chapter approval direct response:', approvalResponse.data);
           this.chapterAccepted = true;
           this.chapter.approval_status = 'true';
           this.successMessage = 'Rozdział został zaakceptowany.';
           
           return; 
         } catch (approvalError) {
-          console.log('Direct approval endpoint not available, falling back to PATCH:', approvalError);
+          // console.log('Direct approval endpoint not available, falling back to PATCH:', approvalError);
         }
 
         const approvalData = {
@@ -306,7 +306,7 @@ export default {
         };
 
         const response = await axios.patch(`/api/v1/chapter/${this.chapterId}`, approvalData);
-        console.log('Chapter approval response:', response.data);
+        // console.log('Chapter approval response:', response.data);
         
         if (response.data) {
           this.chapterAccepted = true;
@@ -316,7 +316,7 @@ export default {
         this.successMessage = 'Rozdział został zaakceptowany.';
         this.errorMessage = '';
       } catch (error) {
-        console.error('Błąd przy akceptacji rozdziału:', error);
+        // console.error('Błąd przy akceptacji rozdziału:', error);
         this.errorMessage = 'Nie udało się zaakceptować rozdziału.';
       }
       setTimeout(() => (this.successMessage = ''), 2000);

@@ -342,7 +342,7 @@ export default {
       try {
         const response = await axios.get('/api/v1/view/groups/all');
         
-        console.log('Groups API response:', response.data);
+        // console.log('Groups API response:', response.data);
         
         let processedGroups = [];
         if (response.data && Array.isArray(response.data.dtos)) {
@@ -350,7 +350,7 @@ export default {
         } else if (response.data && Array.isArray(response.data)) {
           processedGroups = response.data;
         } else {
-          console.warn('Unexpected response format:', response.data);
+          // console.warn('Unexpected response format:', response.data);
           processedGroups = [];
         }
         this.groups = await this.fetchThesisStatuses(processedGroups);
@@ -359,9 +359,9 @@ export default {
           this.extractUserGroupsFromData();
         }
         
-        console.log('Processed groups with thesis status:', this.groups);
+        // console.log('Processed groups with thesis status:', this.groups);
       } catch (error) {
-        console.error('Error fetching groups:', error);
+        // console.error('Error fetching groups:', error);
         this.errorMessage = 'Nie udało się pobrać grup projektów: ' + (error.response?.data?.message || error.message);
         this.groups = [];
       } finally {
@@ -380,14 +380,14 @@ export default {
           
           try {
             const response = await axios.get(`/api/v1/chapter/getDefence/${group.thesis_id}`);
-            console.log(`Defence date for group ${group.name} (thesis_id: ${group.thesis_id}):`, response.data);
+            // console.log(`Defence date for group ${group.name} (thesis_id: ${group.thesis_id}):`, response.data);
             
             return {
               ...group,
               defence_date: response.data.date || null
             };
           } catch (error) {
-            console.warn(`Could not fetch defence date for group ${group.name}:`, error);
+            // console.warn(`Could not fetch defence date for group ${group.name}:`, error);
             return {
               ...group,
               defence_date: null
@@ -397,7 +397,7 @@ export default {
         
         return groupsWithDefenceDates;
       } catch (error) {
-        console.error('Error fetching defence dates:', error);
+        // console.error('Error fetching defence dates:', error);
         return groups;
       }
     },
@@ -416,7 +416,7 @@ export default {
           try {
             const response = await axios.get(`/api/v1/thesis/byProjectId/${group.project_id}`);
             
-            console.log(`Thesis status for group ${group.name}:`, response.data);
+            // console.log(`Thesis status for group ${group.name}:`, response.data);
             
             return {
               ...group,
@@ -424,7 +424,7 @@ export default {
               thesis_status: response.data.approval_status || response.data.status || 'PENDING'
             };
           } catch (error) {
-            console.warn(`Could not fetch thesis status for group ${group.name}:`, error);
+            // console.warn(`Could not fetch thesis status for group ${group.name}:`, error);
             return {
               ...group,
               thesis_status: 'PENDING',
@@ -435,7 +435,7 @@ export default {
         
         return groupsWithStatus;
       } catch (error) {
-        console.error('Error fetching thesis statuses:', error);
+        // console.error('Error fetching thesis statuses:', error);
         return groups; 
       }
     },
@@ -448,7 +448,7 @@ export default {
       try {
         if (!this.userId) return;
         
-        console.log('Extracting user group membership from groups data');
+        // console.log('Extracting user group membership from groups data');
         const userGroupIds = this.groups
           .filter(group => 
             group.students && Array.isArray(group.students) && 
@@ -457,9 +457,9 @@ export default {
           .map(group => group.project_id);
         
         this.userGroups = userGroupIds;
-        console.log('User belongs to groups with IDs:', this.userGroups);
+        // console.log('User belongs to groups with IDs:', this.userGroups);
       } catch (error) {
-        console.error('Error extracting user groups:', error);
+        // console.error('Error extracting user groups:', error);
         this.userGroups = [];
       }
     },
@@ -484,7 +484,7 @@ export default {
         
         return `${day}.${month}.${year} ${hours}:${minutes}`;
       } catch (error) {
-        console.error('Error formatting date:', error);
+        // console.error('Error formatting date:', error);
         return 'Nieprzypisana';
       }
     },
@@ -523,7 +523,7 @@ export default {
     selectGroup(group) {
       // Only handle clicks for groups the user has access to
       if (this.isPromoter || this.isUserInGroup(group)) {
-        console.log('Selected group:', group);
+        // console.log('Selected group:', group);
       }
     },
     getSupervisorName(supervisor) {
@@ -543,12 +543,12 @@ export default {
     
     async viewGroup(group) {
       if (!group || !group.project_id) {
-        console.error('Cannot view group: Invalid project_id', group);
+        // console.error('Cannot view group: Invalid project_id', group);
         return;
       }
 
       if (!this.isPromoter && !this.isUserInGroup(group)) {
-        console.warn('Student attempted to access a group they are not a member of:', group.project_id);
+        // console.warn('Student attempted to access a group they are not a member of:', group.project_id);
         this.errorMessage = 'Brak dostępu do pracy i rozdziałów tej grupy. Możesz przeglądać tylko grupy, których jesteś członkiem.';
         setTimeout(() => {
           this.errorMessage = '';
@@ -560,20 +560,20 @@ export default {
         const refreshedGroup = await this.refreshThesisStatus(group);
         group = refreshedGroup || group;
       } catch (error) {
-        console.warn('Failed to refresh thesis status:', error);
+        // console.warn('Failed to refresh thesis status:', error);
       }
       
-      console.log('Navigating to group with project_id:', group.project_id);
-      console.log('Group details:', {
-        name: group.name,
-        thesis_status: group.thesis_status,
-        isThesisAccepted: this.isThesisAccepted(group)
-      });
+      // console.log('Navigating to group with project_id:', group.project_id);
+      // console.log('Group details:', {
+      //   name: group.name,
+      //   thesis_status: group.thesis_status,
+      //   isThesisAccepted: this.isThesisAccepted(group)
+      // });
       
       const isThesisAccepted = this.isThesisAccepted(group);
       const isSupervisor = this.isGroupSupervisor(group);
-      console.log('Is thesis accepted:', isThesisAccepted, 'Redirecting to:', isThesisAccepted ? 'ChaptersPreview' : 'Thesis');
-      console.log('Is current promoter the supervisor:', isSupervisor);
+      // console.log('Is thesis accepted:', isThesisAccepted, 'Redirecting to:', isThesisAccepted ? 'ChaptersPreview' : 'Thesis');
+      // console.log('Is current promoter the supervisor:', isSupervisor);
       
       if (isThesisAccepted) {
         this.$router.push({ 
@@ -595,12 +595,12 @@ export default {
     },
     async viewTimeline(group) {
       if (!group || !group.project_id) {
-        console.error('Cannot view group: Invalid project_id', group);
+        // console.error('Cannot view group: Invalid project_id', group);
         return;
       }
 
       if (!this.isPromoter && !this.isUserInGroup(group)) {
-        console.warn('Student attempted to access a timeline they are not a member of:', group.project_id);
+        // console.warn('Student attempted to access a timeline they are not a member of:', group.project_id);
         this.errorMessage = 'Brak dostępu do podglądu timelineu tej grupy. Możesz przeglądać tylko grupy, których jesteś członkiem.';
         setTimeout(() => {
           this.errorMessage = '';
@@ -608,17 +608,17 @@ export default {
         return;
       }
 
-      console.log('Navigating to timeline with project_id:', group.project_id);
-      console.log('Group details:', {
-        name: group.name,
-        thesis_status: group.thesis_status,
-        isThesisAccepted: this.isThesisAccepted(group)
-      });
+      // console.log('Navigating to timeline with project_id:', group.project_id);
+      // console.log('Group details:', {
+      //   name: group.name,
+      //   thesis_status: group.thesis_status,
+      //   isThesisAccepted: this.isThesisAccepted(group)
+      // });
 
       const isThesisAccepted = this.isThesisAccepted(group);
       const isSupervisor = this.isGroupSupervisor(group);
-      console.log('Is thesis accepted:', isThesisAccepted);
-      console.log('Is current promoter the supervisor:', isSupervisor);
+      // console.log('Is thesis accepted:', isThesisAccepted);
+      // console.log('Is current promoter the supervisor:', isSupervisor);
 
       if (isThesisAccepted) {
         try {
@@ -626,7 +626,7 @@ export default {
           const thesisId = response.data.id;
           
           if (!thesisId) {
-            console.error('No thesis ID found for project ID:', group.project_id);
+            // console.error('No thesis ID found for project ID:', group.project_id);
             this.errorMessage = 'Nie udało się znaleźć pracy dyplomowej dla tej grupy.';
             setTimeout(() => {
               this.errorMessage = '';
@@ -634,7 +634,7 @@ export default {
             return;
           }
           
-          console.log('Retrieved thesis ID:', thesisId, 'for project ID:', group.project_id);
+          // console.log('Retrieved thesis ID:', thesisId, 'for project ID:', group.project_id);
 
           this.$router.push({
             name: 'Timeline',
@@ -645,7 +645,7 @@ export default {
             }
           });
         } catch (error) {
-          console.error('Error fetching thesis ID:', error);
+          // console.error('Error fetching thesis ID:', error);
           this.errorMessage = 'Nie udało się pobrać danych pracy dyplomowej.';
           setTimeout(() => {
             this.errorMessage = '';
@@ -663,25 +663,25 @@ export default {
       // Load existing defense date and comment if available
       if (group.thesis_id) {
         try {
-          console.log('Fetching defense data for thesis_id:', group.thesis_id);
+          // console.log('Fetching defense data for thesis_id:', group.thesis_id);
           const response = await axios.get(`/api/v1/chapter/getDefence/${group.thesis_id}`);
-          console.log('Defense data response:', response.data);
+          // console.log('Defense data response:', response.data);
           
           if (response.data) {
             if (response.data.date) {
               this.date = new Date(response.data.date);
-              console.log('Loaded defense date:', this.date);
+              // console.log('Loaded defense date:', this.date);
             }
             if (response.data.comment) {
               this.defenseComment = response.data.comment;
-              console.log('Loaded defense comment:', this.defenseComment);
+              // console.log('Loaded defense comment:', this.defenseComment);
             }
           }
         } catch (error) {
           if (error.response && error.response.status !== 404) {
-            console.error('Błąd podczas pobierania danych obrony:', error);
+            // console.error('Błąd podczas pobierania danych obrony:', error);
           } else {
-            console.log('No defense data found (404)');
+            // console.log('No defense data found (404)');
           }
         }
       }
@@ -692,7 +692,7 @@ export default {
 
     viewThesisChecklist(group) {
       if (!group || !group.thesis_id) {
-        console.error('Cannot view thesis checklist: Invalid thesis_id', group);
+        // console.error('Cannot view thesis checklist: Invalid thesis_id', group);
         this.errorMessage = 'Nie można otworzyć checklisty - brak ID pracy.';
         setTimeout(() => {
           this.errorMessage = '';
@@ -701,7 +701,7 @@ export default {
       }
 
       if (!this.isPromoter || !this.isGroupSupervisor(group)) {
-        console.warn('Non-supervisor attempted to access thesis checklist:', group.thesis_id);
+        // console.warn('Non-supervisor attempted to access thesis checklist:', group.thesis_id);
         this.errorMessage = 'Tylko promotor tej grupy może wyświetlić checklistę dla całej pracy.';
         setTimeout(() => {
           this.errorMessage = '';
@@ -709,7 +709,7 @@ export default {
         return;
       }
 
-      console.log(`Navigating to thesis checklist for thesis ID: ${group.thesis_id}`);
+      // console.log(`Navigating to thesis checklist for thesis ID: ${group.thesis_id}`);
       
       this.$router.push({
         name: 'FileChecklist',
@@ -727,24 +727,24 @@ export default {
       // Get existing review if available
       if (group.thesis_id) {
         try {
-          console.log('Fetching review for thesis_id:', group.thesis_id);
+          // console.log('Fetching review for thesis_id:', group.thesis_id);
           const response = await axios.get(`/api/v1/thesis/${group.thesis_id}/review`);
-          console.log('Review response:', response.data);
+          // console.log('Review response:', response.data);
           if (response.data && response.data.review) {
             this.gradeDescription = response.data.review;
-            console.log('Loaded review content:', this.gradeDescription);
+            // console.log('Loaded review content:', this.gradeDescription);
           } else {
-            console.log('No review in response');
+            // console.log('No review in response');
           }
         } catch (error) {
           if (error.response && error.response.status !== 404) {
-            console.error('Błąd podczas pobierania oceny opisowej:', error);
+            // console.error('Błąd podczas pobierania oceny opisowej:', error);
           } else {
-            console.log('No review found (404)');
+            // console.log('No review found (404)');
           }
         }
       } else {
-        console.warn('No thesis_id for group:', group.name);
+        // console.warn('No thesis_id for group:', group.name);
       }
 
       if (!this.gradeModal) {
@@ -777,14 +777,14 @@ export default {
       }
       
       try {
-        console.log('Saving review for thesis_id:', this.selectedGroup.thesis_id);
-        console.log('Review content:', this.gradeDescription);
+        // console.log('Saving review for thesis_id:', this.selectedGroup.thesis_id);
+        // console.log('Review content:', this.gradeDescription);
         
         await axios.put(`/api/v1/thesis/${this.selectedGroup.thesis_id}/review`, {
           review_content: this.gradeDescription
         });
         
-        console.log('Review saved successfully');
+        // console.log('Review saved successfully');
         
         this.gradeModalMessage = 'Ocena opisowa została zapisana.';
         this.gradeModalError = false;
@@ -792,8 +792,8 @@ export default {
           this.gradeModalMessage = '';
         }, 3000);
       } catch (error) {
-        console.error('Błąd podczas zapisywania oceny opisowej:', error);
-        console.error('Error response:', error.response?.data);
+        // console.error('Błąd podczas zapisywania oceny opisowej:', error);
+        // console.error('Error response:', error.response?.data);
         this.gradeModalMessage = 'Nie udało się zapisać oceny opisowej.';
         this.gradeModalError = true;
         setTimeout(() => {
@@ -803,7 +803,7 @@ export default {
     },
     
     async saveDefenseDate(group) {
-      console.log('Saving defense date for group:', group.project_id);
+      // console.log('Saving defense date for group:', group.project_id);
 
       const closeButton = document.querySelector('#defenseDateModal [data-bs-dismiss="modal"]');
       if (closeButton) {
@@ -815,7 +815,7 @@ export default {
 
       // Check if the current promoter is the supervisor of this group
       if (!this.isGroupSupervisor(group)) {
-        console.warn('Promoter attempted to access thesis details of a group they are not supervising:', group.project_id);
+        // console.warn('Promoter attempted to access thesis details of a group they are not supervising:', group.project_id);
         this.errorMessage = 'Możesz edytować tylko grupy, których jesteś promotorem.';
         setTimeout(() => {
           this.errorMessage = '';
@@ -836,12 +836,12 @@ export default {
       if (this.date) {
         //May be off by an hour (timezone)
         adjustedDate.setHours(adjustedDate.getHours() + 1);
-        console.log('Formatted date:', adjustedDate.toISOString());
+        // console.log('Formatted date:', adjustedDate.toISOString());
       }
       try {
         const url = `/api/v1/chapter/addDefence`;
-        console.log('Request URL:', url);
-        console.log('Using thesis_id:', group.thesis_id);
+        // console.log('Request URL:', url);
+        // console.log('Using thesis_id:', group.thesis_id);
         const response = await axios.post(url, {
           chapter_id: group.thesis_id,
           date: adjustedDate.toISOString(),
@@ -849,12 +849,12 @@ export default {
         });
         await pushPromiseNotification(response, 'Zapisywanie daty obrony...', 'Data obrony została zapisana', 'Wystąpił błąd podczas zapisywania daty obrony');
 
-        console.log('Response data:', response.data);
-        console.log('FormData contains:', {
-          chapter_id: group.thesis_id,
-          date: adjustedDate.toISOString(),
-          comment: this.defenseComment
-        });
+        // console.log('Response data:', response.data);
+        // console.log('FormData contains:', {
+        //   chapter_id: group.thesis_id,
+        //   date: adjustedDate.toISOString(),
+        //   comment: this.defenseComment
+        // });
 
         // Clear the form
         this.date = null;
@@ -869,7 +869,7 @@ export default {
         }
 
       } catch (error) {
-        console.error('Error saving defense date:', error);
+        // console.error('Error saving defense date:', error);
         this.errorMessage = 'Wystąpił błąd podczas zapisywania daty obrony: ' +
             (error.response?.data?.message || error.message);
         setTimeout(() => {
@@ -878,7 +878,7 @@ export default {
       }
     },
     isThesisAccepted(group) {
-      console.log('Checking thesis acceptance for group:', group.name, 'Status:', group.thesis_status);
+      // console.log('Checking thesis acceptance for group:', group.name, 'Status:', group.thesis_status);
       
       return group.thesis_status === 'APPROVED';
     },
@@ -909,20 +909,20 @@ export default {
     
     async refreshThesisStatus(group) {
       if (!group || !group.project_id) {
-        console.error('Cannot refresh thesis status: Invalid project_id', group);
+        // console.error('Cannot refresh thesis status: Invalid project_id', group);
         return group;
       }
       
       try {
         const response = await axios.get(`/api/v1/thesis/byProjectId/${group.project_id}`);
-        console.log('Refreshed thesis status:', response.data);
+        // console.log('Refreshed thesis status:', response.data);
         
         return {
           ...group,
           thesis_status: response.data.approval_status || response.data.status || 'PENDING'
         };
       } catch (error) {
-        console.error('Error refreshing thesis status:', error);
+        // console.error('Error refreshing thesis status:', error);
         return group;
       }
     },
@@ -930,10 +930,10 @@ export default {
     async submitThesis(thesisData) {
       try {
         const response = await axios.post('/api/v1/thesis/submit', thesisData);
-        console.log('Thesis submitted successfully:', response.data);
+        // console.log('Thesis submitted successfully:', response.data);
         return response.data;
       } catch (error) {
-        console.error('Error submitting thesis:', error);
+        // console.error('Error submitting thesis:', error);
         throw error;
       }
     },
@@ -945,10 +945,10 @@ export default {
           project_id: projectId,
           status: newStatus
         });
-        console.log('Thesis status updated successfully:', response.data);
+        // console.log('Thesis status updated successfully:', response.data);
         return response.data;
       } catch (error) {
-        console.error('Error updating thesis status:', error);
+        // console.error('Error updating thesis status:', error);
         throw error;
       }
     },
@@ -960,7 +960,7 @@ export default {
       
       // Check if the current promoter is the supervisor of this group
       if (!this.isGroupSupervisor(group)) {
-        console.warn('Promoter attempted to access thesis details of a group they are not supervising:', group.project_id);
+        // console.warn('Promoter attempted to access thesis details of a group they are not supervising:', group.project_id);
         this.errorMessage = 'Możesz edytować tylko grupy, których jesteś promotorem.';
         setTimeout(() => {
           this.errorMessage = '';
@@ -968,7 +968,7 @@ export default {
         return;
       }
       
-      console.log('Navigating to thesis details view for group:', group.name);
+      // console.log('Navigating to thesis details view for group:', group.name);
       this.$router.push({ 
         name: 'ThesisCopy', 
         params: { groupId: group.project_id.toString() }
@@ -1010,9 +1010,9 @@ export default {
           supervisord_user_data_id: supervisorId
         });
         
-        console.log('Groups reload response:', response.data);
+        // console.log('Groups reload response:', response.data);
         
-        this.successMessage = 'Grupy zostały odświeżone pomyślnie. Wszystkie prace i rozdziały zostały wyczyszczone.';
+        this.successMessage = 'Grupy zostały odświeżone pomyślnie. Wszystkie prace i rozdziały zostały wyczyszczone.';;
         setTimeout(() => {
           this.successMessage = '';
         }, 5000);
@@ -1020,7 +1020,7 @@ export default {
         await this.fetchGroups();
         
       } catch (error) {
-        console.error('Error reloading groups:', error);
+        // console.error('Error reloading groups:', error);
         this.errorMessage = 'Nie udało się odświeżyć grup: ' + (error.response?.data?.message || error.message);
       } finally {
         this.loading = false;

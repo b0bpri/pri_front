@@ -61,12 +61,7 @@ export default {
       errorMessage: ''
     };
   },
-  created() {
-    console.log('========================================');
-    console.log('🚀 FRONTEND VERSION CHECK - Home.vue');
-    console.log('✅ Nowa wersja z poprawkami JWT - 2026-01-12 - v1.0.2');
-    console.log('========================================');
-  },
+  
   setup() {
     const router = useRouter();
     return { router };
@@ -82,7 +77,7 @@ export default {
         });
         
         const userData = loginResponse.data;
-        console.log('Login successful:', userData);
+        // console.log('Login successful:', userData);
         
         // Extract user information from new API format
         const token = userData.token;
@@ -105,7 +100,7 @@ export default {
           this.router.push('/groups-panel');
         }
       } catch (error) {
-        console.error('Login error:', error);
+        // console.error('Login error:', error);
         this.errorMessage = error.response?.data?.message || 'Nie udało się zalogować. Sprawdź dane logowania.';
       }
     }
@@ -114,7 +109,7 @@ export default {
     async loginAsStudent() {
       this.errorMessage = '';
       authStore.setUser(false, 30, 'Tomasz', 'Wasyłyk');
-      console.log('Student login successful:', authStore);
+      // console.log('Student login successful:', authStore);
       
       // Clear router cache and let router guard handle redirection
       clearRouterCache();
@@ -124,7 +119,7 @@ export default {
     async loginAsPromoter() {
       this.errorMessage = '';
       authStore.setUser(true, 1, 'Patryk', 'Żywica');
-      console.log('Promoter login successful:', authStore);
+      // console.log('Promoter login successful:', authStore);
       
       // Clear router cache on new login
       clearRouterCache();
@@ -134,7 +129,7 @@ export default {
     async loginAsAlternateStudent() {
       this.errorMessage = '';
       authStore.setUser(false, 28, 'Katarzyna', 'Strzyżewska');
-      console.log('Alternate student login successful:', authStore);
+      // console.log('Alternate student login successful:', authStore);
       
       // Clear router cache and let router guard handle redirection
       clearRouterCache();
@@ -144,7 +139,7 @@ export default {
     async loginAsAlternatePromoter() {
       this.errorMessage = '';
       authStore.setUser(true, 32, 'Marcin', 'Szczepański');
-      console.log('Alternate promoter login successful:', authStore);
+      // console.log('Alternate promoter login successful:', authStore);
       
       // Clear router cache on new login
       clearRouterCache();

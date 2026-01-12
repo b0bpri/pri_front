@@ -100,20 +100,20 @@ export default {
             } else {
                 this.chapterVersion = this.chapterVersionId;
             }
-            console.log('Setting chapter version to:', this.chapterVersion, '(isThesis:', this.$route.query.type === 'thesis', ')');
+            // console.log('Setting chapter version to:', this.chapterVersion, '(isThesis:', this.$route.query.type === 'thesis', ')');
             this.fetchChecklist();
             try {
                 const referrer = document.referrer;
                 const match = referrer.match(/\/chapters-preview\/(\d+)/);
                 if (match && match[1]) {
                     this.projectId = match[1];
-                    console.log('Retrieved projectId from referrer:', this.projectId);
+                    // console.log('Retrieved projectId from referrer:', this.projectId);
                 }
             } catch (e) {
-                console.error('Error getting projectId from referrer:', e);
+                // console.error('Error getting projectId from referrer:', e);
             }
         } else {
-            console.error('No chapterVersionId provided to Checklist component');
+            // console.error('No chapterVersionId provided to Checklist component');
             this.errorMessage = 'Nie można załadować checklisty: brak ID wersji';
         }
     },
@@ -135,7 +135,7 @@ export default {
         },
         async fetchChecklist() {
             if (!this.chapterVersion) {
-                console.error('Cannot fetch checklist: ID is missing');
+                // console.error('Cannot fetch checklist: ID is missing');
                 this.errorMessage = 'Nie można załadować checklisty: brak ID';
                 return;
             }
@@ -145,35 +145,35 @@ export default {
                 ? `/api/v1/view/thesis/${this.chapterVersion}/note/`
                 : `/api/v1/view/version/${this.chapterVersion}/note/`;
             
-            console.log(`Fetching ${this.isThesisChecklist ? 'thesis' : 'chapter'} checklist from:`, endpoint);
+            // console.log(`Fetching ${this.isThesisChecklist ? 'thesis' : 'chapter'} checklist from:`, endpoint);
             this.loading = true;
             try {               
                 const response = await axios.get(endpoint);
-                console.log('Checklist response:', response.data);
+                // console.log('Checklist response:', response.data);
                 
-                console.log('Response structure:', JSON.stringify(response.data, null, 2));
+                // console.log('Response structure:', JSON.stringify(response.data, null, 2));
                 
                 if (response.data && Object.keys(response.data).length > 0) {
                     this.checklist = response.data;         
                     
                     if (this.checklist.models && this.checklist.models.length > 0) {
-                        console.log(`Processing ${this.checklist.models.length} checklist items`);
+                        // console.log(`Processing ${this.checklist.models.length} checklist items`);
                         
                         this.checklist.models.forEach(question => { 
                             // Handle new 'passed' field instead of 'points'
                             question.checked = question.passed || false;
                             question.points = question.passed ? 1 : 0;
-                            console.log(`Question ${question.id} loaded with passed: ${question.passed}, checked: ${question.checked}`);
+                            // console.log(`Question ${question.id} loaded with passed: ${question.passed}, checked: ${question.checked}`);
                         });
                         
                         if (!this.checklist.checklistQuestionModels) {
                             this.checklist.checklistQuestionModels = this.checklist.models;
                         }
                     } else {
-                        console.warn('No checklist models found in the response');
+                        // console.warn('No checklist models found in the response');
                     }
                 } else {
-                    console.warn('Empty response data received');
+                    // console.warn('Empty response data received');
                     this.checklist = {
                         id: null,
                         isPassed: false,
@@ -185,11 +185,11 @@ export default {
                 this.updateChecklistPassedStatus();
                 
             } catch (error) {
-                console.error('Error fetching checklist:', error);
+                // console.error('Error fetching checklist:', error);
                 
                 // Handle 404 specifically - no checklist exists yet
                 if (error.response?.status === 404) {
-                    console.log('No checklist found (404) - this is normal for files without checklists');
+                    // console.log('No checklist found (404) - this is normal for files without checklists');
                     this.checklist = {
                         id: null,
                         isPassed: false,
@@ -201,7 +201,7 @@ export default {
                     
                     const errorData = error.response.data;
                     if (typeof errorData === 'string' && errorData.includes('NullPointerException')) {
-                        console.log('Backend null pointer - no checklist exists for this version');
+                        // console.log('Backend null pointer - no checklist exists for this version');
                         this.checklist = {
                             id: null,
                             isPassed: false,
@@ -228,12 +228,12 @@ export default {
                 question.passed = isChecked;
             }
 
-            console.log(`Question ${question.id || 'new'} updated:`, {
-                question: question.question,
-                checked: isChecked,
-                points: question.points,
-                critical: question.critical || question.isCritical || question.is_critical || false
-            });
+            // console.log(`Question ${question.id || 'new'} updated:`, {
+            //     question: question.question,
+            //     checked: isChecked,
+            //     points: question.points,
+            //     critical: question.critical || question.isCritical || question.is_critical || false
+            // });
             
             this.updateChecklistPassedStatus();
         },
@@ -242,14 +242,14 @@ export default {
             const items = this.getChecklistItems();
             if (!items || items.length === 0) {
                 this.checklist.isPassed = false;
-                console.log('No items to check, setting isPassed to false');
+                // console.log('No items to check, setting isPassed to false');
                 return;
             }
 
             const allChecked = items.every(q => q.points > 0);
             this.checklist.isPassed = allChecked;
             
-            console.log(`Checklist pass status updated: ${this.checklist.isPassed} (all checked: ${allChecked})`);
+            // console.log(`Checklist pass status updated: ${this.checklist.isPassed} (all checked: ${allChecked})`);
         },
 
         calculateTotalPoints() {
@@ -300,18 +300,18 @@ export default {
             });
             
             if (changeCount === 0) {
-                console.warn('No changes detected after save! This might indicate a backend issue or field name mismatch.');
-                console.log('Check the backend logs to see if the data is being received correctly.');
+                // console.warn('No changes detected after save! This might indicate a backend issue or field name mismatch.');
+                // console.log('Check the backend logs to see if the data is being received correctly.');
             } else {
-                console.log(`Verified ${changeCount} changes were saved successfully.`);
-                console.log('Changed items:', mismatchedItems);
+                // console.log(`Verified ${changeCount} changes were saved successfully.`);
+                // console.log('Changed items:', mismatchedItems);
             }
         },
 
         createChecklistDto(items) {
             const itemId = parseInt(this.chapterVersion, 10);
             
-            console.log(`Creating ${this.isThesisChecklist ? 'thesis' : 'chapter'} checklist DTO with ID: ${itemId}`);
+            // console.log(`Creating ${this.isThesisChecklist ? 'thesis' : 'chapter'} checklist DTO with ID: ${itemId}`);
             const modelsArray = items.map(item => {
                 const isChecked = Boolean(item.checked || item.passed || item.points > 0);
                 
@@ -321,10 +321,10 @@ export default {
                     passed: isChecked
                 };
                 
-                console.log(`Saving item "${item.question}":`, {
-                    id: item.id || 'new',
-                    passed: isChecked
-                });
+                // console.log(`Saving item "${item.question}":`, {
+                //     id: item.id || 'new',
+                //     passed: isChecked
+                // });
                 
                 return resultItem;
             });
@@ -362,7 +362,7 @@ export default {
             this.successMessage = '';
             
             if (!this.chapterVersion) {
-                console.error('Cannot save checklist: chapter version ID is missing');
+                // console.error('Cannot save checklist: chapter version ID is missing');
                 this.errorMessage = 'Nie można zapisać checklisty: brak ID wersji';
                 this.loading = false;
                 return;
@@ -376,7 +376,7 @@ export default {
                 
                 // Don't override headers - let axios interceptor add JWT token
                 const response = await axios.post('/api/v1/post/note', checklistDto);
-                console.log('Save response:', response);
+                // console.log('Save response:', response);
                 
                 if (response.data === true || response.data) {
                     this.successMessage = 'Checklist została zapisana pomyślnie.';
@@ -390,7 +390,7 @@ export default {
                     throw new Error(`Unexpected response from server: ${response.data}`);
                 }
             } catch (error) {
-                console.error('Error saving checklist:', error);
+                // console.error('Error saving checklist:', error);
          
                 let errorMsg = 'Nie udało się zapisać checklisty';
                 if (error.response && error.response.status) {
@@ -399,13 +399,13 @@ export default {
                     if (error.response.status === 500) {
                         const errorData = error.response.data;
                         if (typeof errorData === 'string' && errorData.includes('NullPointerException')) {
-                            console.log('Backend null pointer - attempting to continue...');
+                            // console.log('Backend null pointer - attempting to continue...');
                             errorMsg = 'Błąd serwera: brak danych kontekstu. Spróbuj ponownie.';
                         }
                     }
                     
                     if (error.response.data) {
-                        console.error('Error details:', error.response.data);
+                        // console.error('Error details:', error.response.data);
                         
                         if (typeof error.response.data === 'string') {
                             errorMsg += `: ${error.response.data}`;

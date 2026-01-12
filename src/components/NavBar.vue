@@ -191,7 +191,7 @@ export default {
               groupWithThesisStatus.thesis_status = thesisData.approval_status || thesisData.status || 'PENDING';
               this.studentThesisId = thesisData.id;
             } catch (thesisError) {
-              console.warn('Could not fetch thesis status:', thesisError);
+              // console.warn('Could not fetch thesis status:', thesisError);
               groupWithThesisStatus.thesis_status = 'PENDING';
             }
           }
@@ -199,7 +199,7 @@ export default {
           this.isStudentThesisAccepted = groupWithThesisStatus.thesis_status === 'APPROVED';
         }
       } catch (error) {
-        console.error('Error checking student thesis status:', error);
+        // console.error('Error checking student thesis status:', error);
         this.isStudentThesisAccepted = false;
       }
     },

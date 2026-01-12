@@ -109,37 +109,37 @@ export default {
       try {
         try {
           const groupsResponse = await axios.get(`/api/v1/view/groups?id=${this.groupId}`);
-          console.log('Group response with ID parameter:', groupsResponse.data);
+          // console.log('Group response with ID parameter:', groupsResponse.data);
           
           if (groupsResponse.data && groupsResponse.data.dtos && groupsResponse.data.dtos.length > 0) {
             const group = groupsResponse.data.dtos[0];
             if (group && group.name) {
               this.groupName = group.name;
-              console.log('Found group name from ID parameter:', this.groupName);
+              // console.log('Found group name from ID parameter:', this.groupName);
             }
           }
         } catch (groupError) {
-          console.warn('Could not fetch group with ID parameter:', groupError);
+          // console.warn('Could not fetch group with ID parameter:', groupError);
 
           try {
             const allGroupsResponse = await axios.get('/api/v1/view/groups');
-            console.log('All groups response:', allGroupsResponse.data);
+            // console.log('All groups response:', allGroupsResponse.data);
             
             if (allGroupsResponse.data && allGroupsResponse.data.dtos) {
               const group = allGroupsResponse.data.dtos.find(g => g.project_id == this.groupId);
               if (group && group.name) {
                 this.groupName = group.name;
-                console.log('Found group name from all groups:', this.groupName);
+                // console.log('Found group name from all groups:', this.groupName);
               }
             }
           } catch (allGroupsError) {
-            console.warn('Could not fetch all groups:', allGroupsError);
+            // console.warn('Could not fetch all groups:', allGroupsError);
           }
         }
 
-        console.log('Fetching thesis details for project ID:', this.groupId);
+        // console.log('Fetching thesis details for project ID:', this.groupId);
         const response = await axios.get(`/api/v1/thesis/byProjectId/${this.groupId}`);
-        console.log('Thesis details response:', response.data);
+        // console.log('Thesis details response:', response.data);
         
         this.thesis = response.data;
 
@@ -153,7 +153,7 @@ export default {
           }
         }
       } catch (error) {
-        console.error('Error fetching thesis details:', error);
+        // console.error('Error fetching thesis details:', error);
         this.error = 'Nie udało się pobrać danych pracy: ' + (error.response?.data?.message || error.message);
       } finally {
         this.loading = false;
@@ -166,17 +166,17 @@ export default {
     
     copyToClipboard(text) {
       if (!text) {
-        console.warn('Attempted to copy empty text');
+        // console.warn('Attempted to copy empty text');
         return;
       }
       
       navigator.clipboard.writeText(text)
         .then(() => {
-          console.log('Text copied to clipboard');
+          // console.log('Text copied to clipboard');
           this.showCopySuccess();
         })
         .catch(err => {
-          console.error('Failed to copy text: ', err);
+          // console.error('Failed to copy text: ', err);
         });
     },
     
