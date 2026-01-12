@@ -1435,12 +1435,10 @@ export default {
         try {
           // console.log('Checking for existing comments first...');
           const versionIdForCheck = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
-          const existingCommentsResponse = await axios.get(`/api/v1/view/comments?versionId=${versionIdForCheck}`);
+          const existingCommentsResponse = await axios.get(`/api/v1/view/version/${versionIdForCheck}/comment`);
 
-          if (existingCommentsResponse.data &&
-              existingCommentsResponse.data.comments &&
-              existingCommentsResponse.data.comments.length > 0) {
-            existingCommentId = existingCommentsResponse.data.comments[0].id;
+          if (existingCommentsResponse.data && existingCommentsResponse.data.id) {
+            existingCommentId = existingCommentsResponse.data.id;
             // console.log(`Found existing comment with ID: ${existingCommentId}`);
           }
         } catch (checkError) {
@@ -1481,31 +1479,8 @@ export default {
           return;
         }
 
-        if (existingCommentId) {
-          try {
-            // console.log(`Updating existing comment ${existingCommentId} with text: ${this.fileComment}`);
-            const updateResponse = await axios.post(`/api/v1/update/comment`, {
-              id: existingCommentId,
-              text: this.fileComment
-            });
-
-            if (updateResponse.status === 200) {
-              const versionId = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
-              this.fileComments[versionId] = this.fileComment;
-              this.commentSuccess = true;
-              // console.log('Comment updated successfully');
-              setTimeout(() => {
-                this.commentSuccess = false;
-                this.closeCommentModal();
-              }, 1500);
-
-              return;
-            }
-          } catch (updateError) {
-            // console.error('Failed to update comment:', updateError);
-          }
-        }
-
+        // POST /api/v1/post/comment handles both creating and updating comments
+        // If existingCommentId is provided, backend will update the comment
         const commentDto = {
           text: this.fileComment,
           uploader_id: parseInt(authStore.userId),
@@ -1614,25 +1589,8 @@ export default {
       }
     },
 
-    async deleteComment(commentId) {
-      try {
-        // console.log('Attempting to delete comment ID:', commentId);
-        const response = await axios.get(`/api/v1/view/comment?id=${commentId}`);
-        // console.log('Delete comment response:', response.data);
-
-        if (response.data === true) {
-          const versionId = this.selectedFileForComment.chapterVersionId || this.selectedFileForComment.id;
-          await this.fetchFileComment(versionId);
-          return true;
-        } else {
-          throw new Error('Failed to delete comment');
-        }
-      } catch (error) {
-        // console.error('Błąd przy usuwaniu komentarza:', error);
-        this.errorMessage = `Nie udało się usunąć komentarza: ${error.message}`;
-        return false;
-      }
-    },
+    // deleteComment removed - backend doesn't provide DELETE endpoint for comments
+    // To delete a comment, send POST with empty text to /api/v1/post/comment with existing comment id
 
     // Multi-author functionality methods
     async openMultiAuthorModal() {
