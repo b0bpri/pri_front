@@ -170,14 +170,45 @@ export default {
         return;
       }
       
-      navigator.clipboard.writeText(text)
-        .then(() => {
-          // console.log('Text copied to clipboard');
+      // Check if Clipboard API is available
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            // console.log('Text copied to clipboard');
+            this.showCopySuccess();
+          })
+          .catch(err => {
+            // console.error('Failed to copy text: ', err);
+            this.fallbackCopyToClipboard(text);
+          });
+      } else {
+        // Fallback for browsers/contexts without Clipboard API
+        this.fallbackCopyToClipboard(text);
+      }
+    },
+    
+    fallbackCopyToClipboard(text) {
+      // Create temporary textarea element
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      
+      try {
+        textarea.select();
+        const successful = document.execCommand('copy');
+        if (successful) {
+          // console.log('Text copied using fallback method');
           this.showCopySuccess();
-        })
-        .catch(err => {
-          // console.error('Failed to copy text: ', err);
-        });
+        } else {
+          // console.error('Fallback copy failed');
+        }
+      } catch (err) {
+        // console.error('Fallback copy error:', err);
+      } finally {
+        document.body.removeChild(textarea);
+      }
     },
     
     showCopySuccess() {
