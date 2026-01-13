@@ -238,6 +238,64 @@ function pushGroup (group_array_ref, student_id, name_of_student){
 function groupExistsAlready(array_to_check, item_id){
   return array_to_check.value.some(item => item.id === `${item_id}`);
 }
+//Function to open file as blob in new tab or directly if external link
+async function openFile(fileUrl) {
+  if (!fileUrl) {
+    error.value = 'Brak linku do pliku';
+    return;
+  }
+
+  // Check if this is an external link 
+  const isExternalLink = fileUrl && !fileUrl.includes('/api/v1/download/');
+  
+  if (isExternalLink) {
+    // External links are opened directly
+    window.open(fileUrl, '_blank');
+    return;
+  }
+  
+  // For API download links, extract file ID
+  const fileId = fileUrl.split('/').pop();
+  
+  if (!fileId) {
+    error.value = 'Nie można otworzyć pliku - brak identyfikatora.';
+    return;
+  }
+
+  try {
+    // Get JWT token from auth store
+    const token = authStore.token;
+    
+    if (!token) {
+      error.value = 'Brak tokena autoryzacji. Zaloguj się ponownie.';
+      return;
+    }
+
+    // Download file with authorization header
+    const response = await axios.get(`/api/v1/download/${fileId}`, {
+      responseType: 'blob'
+    });
+
+    // Create a local blob URL and open it in a new tab
+    const blob = new Blob([response.data], { 
+      type: response.headers['content-type'] || 'application/octet-stream' 
+    });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    
+    // Release memory after opening
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  } catch (err) {
+    console.error('Error opening file:', err);
+    
+    if (err.response && err.response.status === 401) {
+      error.value = 'Brak autoryzacji. Token wygasł lub jest nieprawidłowy. Zaloguj się ponownie.';
+    } else {
+      error.value = `Nie można otworzyć pliku - błąd ${err.response?.status || 'pobierania'}.`;
+    }
+  }
+}
+
 //Function called when clicking a timeline event. Goes through JSON to find matching entry and saves it to variable matched_json_entry
 function displayItemInformation(event) {
   // Check if timeline event exists and if it has data
@@ -429,7 +487,9 @@ onMounted(async () => {
           <p><strong>Wysłany przez:</strong> {{ matched_json_version.uploader.user_data_first_name }} {{ matched_json_version.uploader.user_data_last_name }}</p>
           <p v-if="matched_json_version.uploader.user_data_id === timelineData.supervisor_user_data_id"><strong>Punktacja checklisty:</strong> {{ matched_json_version.checklist_tally.resolved + '/' + matched_json_version.checklist_tally.total }}</p>
           <p v-if="matched_json_version.supervisor_comment  !== 'n/a'"><strong>Komentarz promotora:</strong> {{ matched_json_version.supervisor_comment }}</p>
-          <p v-if="matched_json_version.file_link"><a :href="matched_json_version.file_link" target="_blank">Link do pliku</a></p>
+          <p v-if="matched_json_version.file_link">
+            <a href="javascript:void(0)" @click="openFile(matched_json_version.file_link)">Link do pliku</a>
+          </p>
         </div>
       </div>
     </div>
