@@ -258,7 +258,8 @@ export default {
         // Reset editing state when switching templates
         this.questions = [];
         this.questionCounter = 0;
-        this.isEditing = false;
+        // Enable editing mode if template is empty
+        this.isEditing = this.existingTemplate.length === 0;
         
       } catch (error) {
         // console.error('Error loading template:', error);
@@ -266,7 +267,8 @@ export default {
         // Reset editing state on error too
         this.questions = [];
         this.questionCounter = 0;
-        this.isEditing = false;
+        // Enable editing mode if template doesn't exist
+        this.isEditing = true;
         // Don't show error message if template doesn't exist yet
         if (error.response?.status !== 404) {
           this.errorMessage = 'Nie udało się załadować istniejącego szablonu.';
@@ -295,6 +297,7 @@ export default {
         id: this.questionCounter,
         text: ''
       });
+      this.isEditing = true;
     },
     
     toggleDeleteConfirm(index, event) {
