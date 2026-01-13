@@ -1325,6 +1325,16 @@ export default {
             `);
             newWindow.document.close();
           }
+          
+          // Automatically download the file
+          const downloadLink = document.createElement('a');
+          downloadLink.href = url;
+          downloadLink.download = fileName;
+          downloadLink.style.display = 'none';
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          
           // Release memory after a delay
           setTimeout(() => window.URL.revokeObjectURL(url), 5000);
         } else {
