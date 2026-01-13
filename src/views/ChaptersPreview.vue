@@ -1291,15 +1291,53 @@ export default {
         // console.log('File downloaded successfully. Content-Type:', response.headers['content-type']);
         // console.log('Response size:', response.data.size);
 
-        // Create a local blob URL and open it in a new tab
-        const blob = new Blob([response.data], { 
-          type: response.headers['content-type'] || 'application/octet-stream' 
-        });
+        const contentType = response.headers['content-type'] || 'application/octet-stream';
+        const blob = new Blob([response.data], { type: contentType });
         const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
         
-        // Release memory after opening
-        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        // Get filename - use file.name from component data
+        const fileName = this.getDisplayName(file);
+        
+        // Check if browser can display this file type (PDF, images, text files)
+        const viewableTypes = ['application/pdf', 'image/', 'text/'];
+        const isViewable = viewableTypes.some(type => contentType.includes(type));
+        
+        if (isViewable) {
+          // For viewable files (PDF, images), open in new tab with proper filename
+          // Create a new window and inject iframe with proper title
+          const newWindow = window.open('about:blank', '_blank');
+          if (newWindow) {
+            newWindow.document.write(`
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <meta charset="UTF-8">
+                  <title>${fileName}</title>
+                  <style>
+                    body { margin: 0; padding: 0; overflow: hidden; }
+                    iframe { width: 100%; height: 100vh; border: none; }
+                  </style>
+                </head>
+                <body>
+                  <iframe src="${url}" title="${fileName}"></iframe>
+                </body>
+              </html>
+            `);
+            newWindow.document.close();
+          }
+          // Release memory after a delay
+          setTimeout(() => window.URL.revokeObjectURL(url), 5000);
+        } else {
+          // For downloadable files (Word, Excel, etc.), trigger download with proper filename
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          // Release memory after download starts
+          setTimeout(() => window.URL.revokeObjectURL(url), 100);
+        }
       } catch (error) {
         // console.error('Error previewing file:', error);
         // console.error('Error response:', error.response);
