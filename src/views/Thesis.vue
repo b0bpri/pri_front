@@ -5,6 +5,34 @@
       <button v-if="isPromoter" class="back-btn" @click="goBack">
         <i class="icon-back"></i> Powrót
       </button>
+      
+      <!-- Hint 1 -->
+      <div style="position: relative; margin-top: -2.8rem; font-weight: normal;">
+        <!-- Student hint -->
+        <ToggleTextBox v-if="!isPromoter"
+          :content="`
+            <div style='padding: 1rem;'>
+              <p>Tutaj jako student wraz z resztą grupy możesz dodawać informacje na temat swojej pracy.</p>
+              <p>Informacje te są sprawdzane przez promotora, który może nanieść do nich poprawki oraz dodać komentarz do całej pracy.</p>
+              <p>Możesz edytować i aktualizować swoją część pracy do momentu, aż promotor ją zaakceptuje.</p>
+              <p>Po zaakceptowaniu pracy przez promotora aktualny widok zostanie zastąpiony nowym widokiem umożliwającym dodawanie wersji rozdziałów oraz ich przegląd w widoku timeline.</p>
+            </div>
+          `"
+        />
+        
+        <!-- Promoter hint -->
+        <ToggleTextBox v-if="isPromoter"
+          :content="`
+            <div style='padding: 1rem;'>
+              <p>Jako promotor możesz sprawdzać stan pracy oraz edytować jej elementy.</p>
+              <p>Możesz dodać do pracy komentarz.</p>
+              <p>Akceptacja całej pracy będzie możliwa dopiero po zaakceptowaniu wszystkich rozdziałów studentów i jest działaniem nieodwracalnym.</p>
+              <p>Poza tym akceptacja jest możliwa tylko jeśli wszystkie pola pracy są wypełnione i zapisane (poza polem komentarza).</p>
+              <p>Po zaakceptowaniu pracy aktualny widok zostanie zastąpiony nowym widokiem umożliwającym obserwacje pracy grupy nad kolejnymi wersjami rozdziałów oraz innymi funkcjonalnościami takimi jak widok timeline czy dodawanie daty obrony.</p>
+            </div>
+          `"
+        />
+      </div>
     </div>
     <form @submit.prevent="saveThesis">
       <div class="form-group">
@@ -88,15 +116,41 @@
     <div class="group-chapters-section">
       <h3>Rozdziały członków grupy</h3>
       
+      <!-- Hint 2  -->
+      <div style="position: relative; margin-top: -3.2rem; font-weight: normal;">
+        <!-- Student hint -->
+        <ToggleTextBox v-if="!isPromoter"
+          :content="`
+            <div style='padding: 1rem;'>
+              <p>Jako student możesz dodać swoją wersję rozdziału, którą następnie sprawdza promotor.</p>
+              <p>Promotor może nanieść do niej poprawki i dodać komentarz oraz zatwierdzić.</p>
+              <p>Jako student możesz edytować i aktualizować swój rozdział do momentu, aż promotor go zaakceptuje.</p>
+            </div>
+          `"
+        />
+        
+        <!-- Promoter hint -->
+        <ToggleTextBox v-if="isPromoter"
+          :content="`
+            <div style='padding: 1rem;'>
+              <p>Jako promotor możesz wyświetlać i przeglądać rozdziały studentów oraz je edytować.</p>
+              <p>Możesz również dodać komentarz do rozdziału, a gdy ten będzie spełniał wymogi możesz go zaakceptować.</p>
+              <p>Akceptacja rozdziału studenta jest działaniem nieodwracalnym ale wymaganym do akceptacji całej pracy.</p>
+              <p>Akceptacja będzie możliwa tylko jeśli wszystkie pola rozdziału są wypełnione i zapisane (poza polem komentarza).</p>
+            </div>
+          `"
+        />
+      </div>
+      
       <div v-if="loadingChapters" class="loading-indicator">
         <p>Ładowanie rozdziałów...</p>
       </div>
       
-      <div v-else-if="groupChapters.length === 0" class="no-chapters">
+      <div v-else-if="groupChapters.length === 0" class="no-chapters" style="margin-top: 3rem;">
         <p>Brak zdefiniowanych rozdziałów dla członków grupy.</p>
       </div>
       
-      <div v-else class="chapters-list">
+      <div v-else class="chapters-list" style="margin-top: 3.5rem;">
         <div v-for="(chapter, index) in groupChapters" :key="index" class="chapter-item">
           <div class="chapter-header">
             <h4>{{ chapter.studentName || 'Student' }}</h4>
@@ -176,11 +230,13 @@
 import authStore from '/src/stores/authStore.js';
 import axios from 'axios';
 import StudentChapter from '@/components/StudentChapter.vue';
+import ToggleTextBox from '@/components/ToggleTextBox.vue';
 
 export default {
   name: 'ThesisView',
   components: {
-    StudentChapter
+    StudentChapter,
+    ToggleTextBox
   },
   data() {
     return {
