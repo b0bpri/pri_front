@@ -249,7 +249,8 @@ import '@vuepic/vue-datepicker/dist/main.css';
             <li>Zresetowanie statusu prac do stanu początkowego</li>
             <li>Zachowanie struktury grup projektowych</li>
           </ul>
-          <p class="text-danger"><strong>Wszystkie dane dotyczące aktualnego stanu prac zostaną usunięte!</strong></p>
+          <p class="text-danger"><strong>Wszystkie dane dotyczące aktualnego stanu prac z grup danego promotra zostaną usunięte!</strong></p>
+          <p class="text-danger"><strong>Jeżeli chociaż jedna wersja pliku została przesłana, przeładowanie będzie niemożliwe, dla bezpieczeństwa pracy studentów.</strong></p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
