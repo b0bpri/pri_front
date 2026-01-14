@@ -1351,7 +1351,7 @@ export default {
       } catch (error) {
         // console.error('Error previewing file:', error);
         // console.error('Error response:', error.response);
-        // console.error('Error status:', error.response?.status);
+        // console.error('Error status:', error.response?.status);change
         
         if (error.response && error.response.status === 401) {
           this.errorMessage = 'Brak autoryzacji. Token wygasł lub jest nieprawidłowy. Zaloguj się ponownie.';
