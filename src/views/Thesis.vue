@@ -12,10 +12,13 @@
         <ToggleTextBox v-if="!isPromoter"
           :content="`
             <div style='padding: 1rem;'>
-              <p>Tutaj jako student wraz z resztą grupy możesz dodawać informacje na temat swojej pracy.</p>
-              <p>Informacje te są sprawdzane przez promotora, który może nanieść do nich poprawki oraz dodać komentarz do całej pracy.</p>
+               <p>Widok służy do formułowania tematów rozdziałów i pracy dyplomowej. Promotor będzie mógł potem dodać je do APD.</p>
+              <p>Tutaj jako student, wraz z resztą grupy możesz dodawać i edytować podstawowe dane na temat waszej pracy.</p>
+              <p>Są one sprawdzane przez promotora, który może nanieść do nich poprawki oraz dodać komentarz do całej pracy.</p>
               <p>Możesz edytować i aktualizować swoją część pracy do momentu, aż promotor ją zaakceptuje.</p>
-              <p>Po zaakceptowaniu pracy przez promotora aktualny widok zostanie zastąpiony nowym widokiem umożliwającym dodawanie wersji rozdziałów oraz ich przegląd w widoku timeline.</p>
+              <p>Po zaakceptowaniu pracy przez promotora, aktualny widok, zostanie zastąpiony nowym widokiem, umożliwającym dodawanie wersji rozdziału. oraz ich przegląd w widoku timeline.</p>
+              <p>Udostępniony równie zostanie widok timeline(osi czasu), w ktorym bedzie można przejżeć całość pracy grupy nad rozdziałami.</p>
+
             </div>
           `"
         />
@@ -24,11 +27,14 @@
         <ToggleTextBox v-if="isPromoter"
           :content="`
             <div style='padding: 1rem;'>
+              <p>Widok służy do nazdoru nad procesem formułowania tematów rozdziałów i pracy dyplomowej, które w zamierzeniu mają trafić do APD.</p>
               <p>Jako promotor możesz sprawdzać stan pracy oraz edytować jej elementy.</p>
-              <p>Możesz dodać do pracy komentarz.</p>
-              <p>Akceptacja całej pracy będzie możliwa dopiero po zaakceptowaniu wszystkich rozdziałów studentów i jest działaniem nieodwracalnym.</p>
-              <p>Poza tym akceptacja jest możliwa tylko jeśli wszystkie pola pracy są wypełnione i zapisane (poza polem komentarza).</p>
-              <p>Po zaakceptowaniu pracy aktualny widok zostanie zastąpiony nowym widokiem umożliwającym obserwacje pracy grupy nad kolejnymi wersjami rozdziałów oraz innymi funkcjonalnościami takimi jak widok timeline czy dodawanie daty obrony.</p>
+              <p>Możesz dodać do pracy komentarz, który będzie widoczny dla studentów.</p>
+              <p>Akceptacja całej pracy, będzie możliwa, dopiero po zaakceptowaniu każdego z rozdziałów i jest działaniem nieodwracalnym.</p>
+              <p>Akceptacja jest możliwa tylko, jeśli wszystkie pola pracy są wypełnione i zapisane (poza polem komentarza).</p>
+              <p>Po zaakceptowaniu pracy, aktualny widok zostanie zastąpiony widokami, umożliwiającymi nadzór nad pracą grupy.</p>
+              <p>Te widoki to przegląd rozdziału, widok timeline (osi czasu). Możliwe też będzie ustalenie terminu obrony w panelu grup.</p>
+              <p>Udostępniony też zostanie, w panelu grup, przycisk prowadzący do osobnego widoku, z którego będzie mozna łatwo skopiować widoczne tutaj dane, celem wpisania ich do APD.</p>
             </div>
           `"
         />
@@ -134,9 +140,9 @@
           :content="`
             <div style='padding: 1rem;'>
               <p>Jako promotor możesz wyświetlać i przeglądać rozdziały studentów oraz je edytować.</p>
-              <p>Możesz również dodać komentarz do rozdziału, a gdy ten będzie spełniał wymogi możesz go zaakceptować.</p>
-              <p>Akceptacja rozdziału studenta jest działaniem nieodwracalnym ale wymaganym do akceptacji całej pracy.</p>
-              <p>Akceptacja będzie możliwa tylko jeśli wszystkie pola rozdziału są wypełnione i zapisane (poza polem komentarza).</p>
+              <p>Możesz również dodać komentarz do rozdziału, a gdy ten będzie spełniał wymogi, możesz go zaakceptować.</p>
+              <p>Akceptacja rozdziału studenta jest działaniem nieodwracalnym, ale wymaganym do akceptacji całej pracy.</p>
+              <p>Akceptacja będzie możliwa, tylko jeśli wszystkie pola rozdziału są wypełnione i zapisane (poza polem komentarza).</p>
             </div>
           `"
         />
