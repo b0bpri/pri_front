@@ -14,42 +14,68 @@ import '@vuepic/vue-datepicker/dist/main.css';
         <ToggleTextBox
           :content="`
           <div style='padding: 1rem;'>
-            <p>Panel grup jest centralnym widokiem administracyjnym gdzie promotorzy mogą przeglądać grupy projektowe z teraźniejszego roku jak i wykonać na nich czynności administracyjne.</p>
-            <h5>Dodawanie grup</h5>
-            <p>Grupy dodawane są poprzez ?co?, po czym będą potrzebowały p</p>
-            <p>Legenda obiektów wyświetlanych na osi czasu:</p>
-
+            <span>Panel grup jest centralnym widokiem administracyjnym gdzie promotorzy mogą przeglądać grupy projektowe z bierzącego roku jak i wykonać na nich czynności administracyjne.</span>
+            <p>Grupy mogą być dodane automatycznie na podstawie grup w głównej części systemu PRI przy starcie aplikacji</p>
             <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
-              <!-- Supervisor -->
               <div style='display: flex; align-items: center; gap: 0.5rem;'>
-                <div class='status-supervisor' style='display: flex; opacity: 0.6; font-size: 13px; align-items: center; justify-content: center; color: white;'>x/y</div>
-                <span>Odpowiedź od promotora, gdzie x/y oznacza ilość zdobytych punktów</span>
-              </div>
-
-              <!-- Student - Pending -->
-              <div style='display: flex; align-items: center; gap: 0.5rem;'>
-                <div class='status-student-pending' style='opacity: 0.6;'></div>
-                <span>oraz</span>
-                <div class='status-student-multi-author-pending' style='opacity: 0.6;'></div>
-                <span>Jednoautorska oraz wieloautorska wersja rozdziału studenta czekająca na ocenę</span>
-              </div>
-
-              <!-- Student - Reviewed -->
-              <div style='display: flex; align-items: center; gap: 0.5rem;'>
-                <div class='status-student-reviewed' style='opacity: 0.6;'></div>
-                <span>oraz</span>
-                <div class='status-student-multi-author-reviewed' style='opacity: 0.6;'></div>
-                <span>Jednoautorska oraz wieloautorska oceniona wersja rozdziału studenta</span>
-              </div>
-
-              <!-- Defence Date -->
-              <div style='display: flex; align-items: center; gap: 0.5rem;'>
-                <div class='status-defence-date' style='display: flex; opacity: 0.6; font-size: 13px; align-items: center; justify-content: center; color: white;'>*Data*</div>
-                <span>Data obrony pracy dyplomowej</span>
+                <button class='reload-groups-btn' style='white-space: nowrap;'><i class='icon-reload'></i>Odswież grupy</button>
+                <span>Odtwarza grupy należące do promotora wraz z ich stanem osobowym na podstawie ich aktualnego stanu w głównej części systemu PRI.</span>
               </div>
             </div>
+            <p>Tabela grup może być sortowane po nazwie pracy dyplomowej, promotorze, i daty obrony.</p>
+            <h5>Legenda akcji widoku grup:</h5>
+            <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
+              <!-- Praca Dyplomowa -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <span>Jeżeli praca dyplomowa ma stan</span>
+                 <span class='status-badge status-pending' style='padding: 0.25rem 0.75rem;'>Oczekująca</span>
+                 <span>jedyną dostępną akcją będzie:</span>
+              </div>
+              <div style='display: flex; align-items: center;'>
+                 <button class='action-btn primary' style='white-space: nowrap;'><i class='icon-eye'></i>Praca dyplomowa</button>
+                 <span>Przejdzie do widoku gdzie możliwe jest wypełnienie szczegółów pracy dyplomowej by mogła ona być zaakceptowana.</span>
+              </div>
 
-            <p style='margin-top: 0.5rem;'>Każdy z obiektów na osi czasu może zostać kliknięty aby wyświetlić o nim sczegóły.</p>
+
+
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <span>Gdy praca jest</span>
+                 <span class='status-badge status-accepted' style='padding: 0.25rem 0.75rem;'>Zaakceptowana</span>
+                 <span>, dostępne będą akcje:</span>
+              </div>
+              <!-- Rozdziały -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn primary'><i class='icon-eye'></i>Rozdziały</button>
+                 <span>Przechodzi do widokuprzeglądu rozdziałów wybranej grupy gdzie możliwe jest wysyłanie i ocenianie wersji prac dyplomowych.</span>
+              </div>
+              <span>Jest to domyślny widok dla studentów, wraz z widokiem osi czasu śą jedynymi dostępnym dla nich widokami.</span>
+              <!-- Oś czasu -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn primary' style='white-space: nowrap;'><i class='icon-eye'></i>Oś czasu</button>
+                 <span>Przechodzi do widoku osi czasu wybranej grupy, gdzie historia wersji danej pracy dyplomowej jest wyświetlona w łatwy do zrozumienia sposób</span>
+              </div>
+              <!-- Kopiuj elementy -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn secondary copy-btn' style='white-space: nowrap;'><i class='icon-copy'></i>Kopiuj elementy</button>
+                 <span>Przechodzi do widoku gdzie łatwiej można kopoiować szczegóły pracy dyplomowej by łatwiej wprowadzić ją w system archiwum prac dyplomowych</span>
+              </div>
+              <!-- Ustal termin obrony -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn primary' style='white-space: nowrap;'><i class='icon-timeline'></i>Ustal termin obrony</button>
+                 <span>Wyświetla modal do dodania i zapisania daty obrony</span>
+              </div>
+              <!-- Dodaj ocenę opisową -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn secondary' style='white-space: nowrap;'><i class='icon-grade'></i>Dodaj ocenę opisową</button>
+                 <span>Wyświetla modal do dodania oceny opisowej, która jest niewidoczna dla studentów</span>
+              </div>
+              <!-- Checklista -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn secondary checklist-btn' style='white-space: nowrap;'><i class='icon-checklist'></i>Checklista</button>
+                 <span>Przechodzi do widoku gdzie można zaznaczyć które wymagania są spełnione przez prace dyplomową</span>
+              </div>
+              <span>Studenci mają dostęp do swojej wersji tego widoku gdzie mogą zobaczyć jakie wymagania spełnia ich praca dyplomowa</span>
+            </div>
           </div>
           `"
         />

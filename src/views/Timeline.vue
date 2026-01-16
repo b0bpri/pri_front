@@ -439,7 +439,7 @@ onMounted(async () => {
                   <!-- Supervisor -->
                   <div style='display: flex; align-items: center; gap: 0.5rem;'>
                     <div class='status-supervisor' style='display: flex; opacity: 0.6; font-size: 13px; align-items: center; justify-content: center; color: white;'>x/y</div>
-                    <span>Odpowiedź od promotora, gdzie x/y oznacza ilość zdobytych punktów</span>
+                    <span>Odpowiedź od promotora, gdzie x/y oznacza ilość spełnoinych wymagań względem maksymalnej ich liczby</span>
                   </div>
 
                   <!-- Student - Pending -->
