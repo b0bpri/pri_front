@@ -35,6 +35,9 @@
                       ${isPromoter ? '<p style=\'margin-top: 0.5rem;\'>Historia wersji prac dyplomowych poszczególnego studenta może być wyświetlona na dole strony, po wybraniu studenta poprzez:</p>': ''}
                       ${isPromoter ? '<select class=><option displayed value=>-- wybierz --</option></select>' : ''}
                     </div>
+                    <div style='display: flex; align-items: center; gap: 0.5rem; margin-top: -1rem'>
+                    ${isPromoter ? '<span>Wersja pracy wieloautorskiej jest wyświetlona jako wersja w historii dla każdego z uczestniczących studentów i może być zidentyfikowana po powtarzającej się dacie lub używając widoku osi czasu danej grupy.</span>' : ''}
+                    </div>
                   </div>
 
                 </div>

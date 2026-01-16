@@ -90,7 +90,34 @@ function onMousemoveTimeline ({ time }) {
 function onMouseleaveTimeline () {
   mouseHoverPosition.value = null;
 }
-
+//Goes over all timeline events and applies multiauthor event statuses
+function getRepeatingVersions() {
+  let dates_table = [];
+  timelineData.value.chapters.forEach(chapter => {
+    chapter.versions.forEach(version => {
+      if (version.id && !dates_table.some(entry =>
+          entry.version === version.id &&
+          entry.chapter === chapter.author.user_data_id
+      )) {
+        dates_table.push({
+          chapter: chapter.author.user_data_id,
+          version: version.id,
+          date: version.upload_date_time,
+          score: version.checklist_tally.resolved
+        })
+      }
+    })
+  })
+  const versionCounts = dates_table.reduce((counts, { version }) => {
+    counts[version] = (counts[version] || 0) + 1;
+    return counts;
+  }, {});
+  const repeatingVersions = Object.entries(versionCounts)
+      .filter(([_, count]) => count > 1)
+      .map(([version]) => Number(version));
+  //console.log('Versions that repeat:', repeatingVersions);
+  return repeatingVersions
+}
 //Goes through acquired JSON and using pushItem and pushGroup, populates Vue Timeline Chart arrays. Is booted on app mount.
 function processDataEntries() {
   if (!timelineData.value) {
@@ -102,6 +129,7 @@ function processDataEntries() {
   const thesis_supervisor_id = timelineData.value.supervisor_user_data_id;
   //Test Entry to test supervisor status. Other timeline entries do not react to it, as they react strictly to entries in timelineData
   //pushItem(items, 999, 28, 1756737432000, 'Testname', 'Testcomment', 'Testtally', 'status-supervisor')
+  let repeatingVersions = getRepeatingVersions();
   timelineData.value.chapters.forEach(chapter => {
     const author_id = chapter.author.user_data_id;
     const author_name = `${chapter.author.user_data_first_name} ${chapter.author.user_data_last_name}`;
@@ -123,10 +151,18 @@ function processDataEntries() {
         }
         else {
           if (was_reviewed === 1) {
-            status = 'status-student-reviewed';
+            if (repeatingVersions.includes(version.id)) {
+              status = 'status-student-multi-author-reviewed';
+            } else {
+              status = 'status-student-reviewed';
+            }
           }
           else {
-            status = 'status-student-pending';
+            if (repeatingVersions.includes(version.id)) {
+              status = 'status-student-multi-author-pending';
+            } else {
+              status = 'status-student-pending';
+            }
           }
         }
         if (!dateFlag.value){
@@ -312,6 +348,8 @@ function displayItemInformation(event) {
   }
 }
 
+
+
 function goBack() {
   router.push('/groups-panel');
 }
@@ -319,7 +357,7 @@ function goBack() {
 const timelineRange = computed(() => {
   const currentYear = new Date().getFullYear();
   let beginningDate = new Date(currentYear - 1, 9, 1).getTime();
-  let endingDate = new Date(currentYear, 5, 30).getTime();
+  let endingDate = new Date(currentYear, 2, 30).getTime();
 
   if (dateFlag.value) {
     const entryYear = new Date(dateFlag.value).getFullYear();
@@ -327,18 +365,18 @@ const timelineRange = computed(() => {
 
     if (entryMonth < 4) {
       beginningDate = new Date(entryYear - 1, 9, 1).getTime();
-      endingDate = new Date(entryYear, 5, 30).getTime();
+      endingDate = new Date(entryYear, 2, 30).getTime();
     }
     else {
       beginningDate = new Date(entryYear, 9, 1).getTime();
-      endingDate = new Date(entryYear + 1, 5, 30).getTime();
+      endingDate = new Date(entryYear + 1, 2, 30).getTime();
     }
   }
   //console.log('Beginning date is: ', beginningDate);
   //console.log('Ending date is: ', endingDate);
   return [beginningDate, endingDate];
 });
-const initialViewportRange = ref({ start: timelineRange.value[0], end: new Date(new Date(timelineRange.value[1]).setMonth(new Date(timelineRange.value[1]).getMonth() - 4, 28)).getTime() });
+const initialViewportRange = ref({ start: timelineRange.value[0], end: new Date(new Date(timelineRange.value[1]).setMonth(new Date(timelineRange.value[1]).getMonth() - 1, 28)).getTime() });
 const viewport = ref({ start: timelineRange.value[0], end: timelineRange.value[1] });
 const maxRange = ref({ start: timelineRange.value[0], end: timelineRange.value[1] });
 const viewportSize = computed(() => viewport.value.end - viewport.value.start);
@@ -401,19 +439,23 @@ onMounted(async () => {
                   <!-- Supervisor -->
                   <div style='display: flex; align-items: center; gap: 0.5rem;'>
                     <div class='status-supervisor' style='display: flex; opacity: 0.6; font-size: 13px; align-items: center; justify-content: center; color: white;'>x/y</div>
-                    <span>Odpowiedź od promotora, gdzie x/y oznacza ilość zdobytych punktów</span>
+                    <span>Odpowiedź od promotora, gdzie x/y oznacza ilość spełnoinych wymagań względem maksymalnej ich liczby</span>
                   </div>
 
                   <!-- Student - Pending -->
                   <div style='display: flex; align-items: center; gap: 0.5rem;'>
                     <div class='status-student-pending' style='opacity: 0.6;'></div>
-                    <span>Wersja rozdziału studenta czekająca na ocene</span>
+                    <span>oraz</span>
+                    <div class='status-student-multi-author-pending' style='opacity: 0.6;'></div>
+                    <span>Jednoautorska oraz wieloautorska wersja rozdziału studenta czekająca na ocenę</span>
                   </div>
 
                   <!-- Student - Reviewed -->
                   <div style='display: flex; align-items: center; gap: 0.5rem;'>
                     <div class='status-student-reviewed' style='opacity: 0.6;'></div>
-                    <span>Oceniona wersja rodziału studenta</span>
+                    <span>oraz</span>
+                    <div class='status-student-multi-author-reviewed' style='opacity: 0.6;'></div>
+                    <span>Jednoautorska oraz wieloautorska oceniona wersja rozdziału studenta</span>
                   </div>
 
                   <!-- Defence Date -->

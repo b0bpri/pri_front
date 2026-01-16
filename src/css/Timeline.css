@@ -184,6 +184,15 @@
     border-bottom-color: #ecac0c;
 }
 
+:deep(.status-student-multi-author-pending) {
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 27px solid;
+    background: none !important;
+    border-radius: 0 !important;
+    border-bottom-color: #964B00;
+}
+
 :deep(.status-student-reviewed) {
     border-left: 12px solid transparent;
     border-right: 12px solid transparent;
@@ -191,6 +200,15 @@
     background: none !important;
     border-radius: 0 !important;
     border-bottom-color: #63cc07;
+}
+
+:deep(.status-student-multi-author-reviewed) {
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 27px solid;
+    background: none !important;
+    border-radius: 0 !important;
+    border-bottom-color: #6f42c1;
 }
 
 :deep(.status-defence-date) {

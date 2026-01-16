@@ -10,8 +10,78 @@ import '@vuepic/vue-datepicker/dist/main.css';
   <div class="groups-container">
     <div class="page-header">
       <h1 class="page-title">Grupy projektowe</h1>
-      <button v-if="isPromoter" 
-              class="reload-groups-btn" 
+      <div class="help-icon-container">
+        <ToggleTextBox
+          :content="`
+          <div style='padding: 1rem;'>
+            <span>Panel grup jest centralnym widokiem administracyjnym gdzie promotorzy mogą przeglądać grupy projektowe z bierzącego roku jak i wykonać na nich czynności administracyjne.</span>
+            <p>Grupy mogą być dodane automatycznie na podstawie grup w głównej części systemu PRI przy starcie aplikacji</p>
+            <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                <button class='reload-groups-btn' style='white-space: nowrap;'><i class='icon-reload'></i>Odswież grupy</button>
+                <span>Odtwarza grupy należące do promotora wraz z ich stanem osobowym na podstawie ich aktualnego stanu w głównej części systemu PRI.</span>
+              </div>
+            </div>
+            <p>Tabela grup może być sortowane po nazwie pracy dyplomowej, promotorze, i daty obrony.</p>
+            <h5>Legenda akcji widoku grup:</h5>
+            <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
+              <!-- Praca Dyplomowa -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <span>Jeżeli praca dyplomowa ma stan</span>
+                 <span class='status-badge status-pending' style='padding: 0.25rem 0.75rem;'>Oczekująca</span>
+                 <span>jedyną dostępną akcją będzie:</span>
+              </div>
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn primary' style='white-space: nowrap;'><i class='icon-eye'></i>Praca dyplomowa</button>
+                 <span>Przejdzie do widoku gdzie możliwe jest wypełnienie szczegółów pracy dyplomowej by mogła ona być zaakceptowana.</span>
+              </div>
+
+
+
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <span>Gdy praca jest</span>
+                 <span class='status-badge status-accepted' style='padding: 0.25rem 0.75rem;'>Zaakceptowana</span>
+                 <span>, dostępne będą akcje:</span>
+              </div>
+              <!-- Rozdziały -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn primary'><i class='icon-eye'></i>Rozdziały</button>
+                 <span>Przechodzi do widokuprzeglądu rozdziałów wybranej grupy gdzie możliwe jest wysyłanie i ocenianie wersji prac dyplomowych.</span>
+              </div>
+              <span>Jest to domyślny widok dla studentów, wraz z widokiem osi czasu śą jedynymi dostępnym dla nich widokami.</span>
+              <!-- Oś czasu -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn primary' style='white-space: nowrap;'><i class='icon-eye'></i>Oś czasu</button>
+                 <span>Przechodzi do widoku osi czasu wybranej grupy, gdzie historia wersji danej pracy dyplomowej jest wyświetlona w łatwy do zrozumienia sposób</span>
+              </div>
+              <!-- Kopiuj elementy -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn secondary copy-btn' style='white-space: nowrap;'><i class='icon-copy'></i>Kopiuj elementy</button>
+                 <span>Przechodzi do widoku gdzie łatwiej można kopoiować szczegóły pracy dyplomowej by łatwiej wprowadzić ją w system archiwum prac dyplomowych</span>
+              </div>
+              <!-- Ustal termin obrony -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn primary' style='white-space: nowrap;'><i class='icon-timeline'></i>Ustal termin obrony</button>
+                 <span>Wyświetla modal do dodania i zapisania daty obrony</span>
+              </div>
+              <!-- Dodaj ocenę opisową -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn secondary' style='white-space: nowrap;'><i class='icon-grade'></i>Dodaj ocenę opisową</button>
+                 <span>Wyświetla modal do dodania oceny opisowej, która jest niewidoczna dla studentów</span>
+              </div>
+              <!-- Checklista -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                 <button class='action-btn secondary checklist-btn' style='white-space: nowrap;'><i class='icon-checklist'></i>Checklista</button>
+                 <span>Przechodzi do widoku gdzie można zaznaczyć które wymagania są spełnione przez prace dyplomową</span>
+              </div>
+              <span>Studenci mają dostęp do swojej wersji tego widoku gdzie mogą zobaczyć jakie wymagania spełnia ich praca dyplomowa</span>
+            </div>
+          </div>
+          `"
+        />
+      </div>
+      <button v-if="isPromoter"
+              class="reload-groups-btn"
               @click="showReloadConfirmation"
               title="Przycisk ten przeładuje grupy i usunie ich aktualny stan">
         <i class="icon-reload"></i> Odśwież grupy
@@ -267,6 +337,8 @@ import authStore from '/src/stores/authStore.js';
 import { Modal } from 'bootstrap';
 import '../css/GroupsPanel.css';
 import { pushNotification, pushPromiseNotification } from '/src/components/NotivueNotification.vue';
+import ToggleTextBox from "@/components/ToggleTextBox.vue";
+
 
 
 export default {
