@@ -10,8 +10,52 @@ import '@vuepic/vue-datepicker/dist/main.css';
   <div class="groups-container">
     <div class="page-header">
       <h1 class="page-title">Grupy projektowe</h1>
-      <button v-if="isPromoter" 
-              class="reload-groups-btn" 
+      <div class="help-icon-container">
+        <ToggleTextBox
+          :content="`
+          <div style='padding: 1rem;'>
+            <p>Panel grup jest centralnym widokiem administracyjnym gdzie promotorzy mogą przeglądać grupy projektowe z teraźniejszego roku jak i wykonać na nich czynności administracyjne.</p>
+            <h5>Dodawanie grup</h5>
+            <p>Grupy dodawane są poprzez ?co?, po czym będą potrzebowały p</p>
+            <p>Legenda obiektów wyświetlanych na osi czasu:</p>
+
+            <div style='display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;'>
+              <!-- Supervisor -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                <div class='status-supervisor' style='display: flex; opacity: 0.6; font-size: 13px; align-items: center; justify-content: center; color: white;'>x/y</div>
+                <span>Odpowiedź od promotora, gdzie x/y oznacza ilość zdobytych punktów</span>
+              </div>
+
+              <!-- Student - Pending -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                <div class='status-student-pending' style='opacity: 0.6;'></div>
+                <span>oraz</span>
+                <div class='status-student-multi-author-pending' style='opacity: 0.6;'></div>
+                <span>Jednoautorska oraz wieloautorska wersja rozdziału studenta czekająca na ocenę</span>
+              </div>
+
+              <!-- Student - Reviewed -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                <div class='status-student-reviewed' style='opacity: 0.6;'></div>
+                <span>oraz</span>
+                <div class='status-student-multi-author-reviewed' style='opacity: 0.6;'></div>
+                <span>Jednoautorska oraz wieloautorska oceniona wersja rozdziału studenta</span>
+              </div>
+
+              <!-- Defence Date -->
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
+                <div class='status-defence-date' style='display: flex; opacity: 0.6; font-size: 13px; align-items: center; justify-content: center; color: white;'>*Data*</div>
+                <span>Data obrony pracy dyplomowej</span>
+              </div>
+            </div>
+
+            <p style='margin-top: 0.5rem;'>Każdy z obiektów na osi czasu może zostać kliknięty aby wyświetlić o nim sczegóły.</p>
+          </div>
+          `"
+        />
+      </div>
+      <button v-if="isPromoter"
+              class="reload-groups-btn"
               @click="showReloadConfirmation"
               title="Przycisk ten przeładuje grupy i usunie ich aktualny stan">
         <i class="icon-reload"></i> Odśwież grupy
@@ -267,6 +311,8 @@ import authStore from '/src/stores/authStore.js';
 import { Modal } from 'bootstrap';
 import '../css/GroupsPanel.css';
 import { pushNotification, pushPromiseNotification } from '/src/components/NotivueNotification.vue';
+import ToggleTextBox from "@/components/ToggleTextBox.vue";
+
 
 
 export default {
