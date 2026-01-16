@@ -31,7 +31,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
                  <span class='status-badge status-pending' style='padding: 0.25rem 0.75rem;'>Oczekująca</span>
                  <span>jedyną dostępną akcją będzie:</span>
               </div>
-              <div style='display: flex; align-items: center;'>
+              <div style='display: flex; align-items: center; gap: 0.5rem;'>
                  <button class='action-btn primary' style='white-space: nowrap;'><i class='icon-eye'></i>Praca dyplomowa</button>
                  <span>Przejdzie do widoku gdzie możliwe jest wypełnienie szczegółów pracy dyplomowej by mogła ona być zaakceptowana.</span>
               </div>
